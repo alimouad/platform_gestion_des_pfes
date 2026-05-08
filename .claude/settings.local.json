@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(docker compose *)",
+      "Bash(curl -s -X POST http://localhost:8000/api/login -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{\"courriel\":\"mouadalli311@gmail.com\",\"mot_de_passe\":\"mouad1411\"}')",
+      "Bash(python3 -m json.tool)",
+      "Bash(netstat -tlnp)",
+      "Bash(ps -p 51820 -o cmd)",
+      "Bash(curl -s http://localhost:5174/)",
+      "Bash(curl -s -X POST http://localhost:5174/api/login -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{\"courriel\":\"mouadalli311@gmail.com\",\"mot_de_passe\":\"mouad1411\"}')",
+      "Bash(curl -sv -X POST http://localhost:5174/api/login -H 'Content-Type: application/json' -H 'Accept: application/json' -d '{\"courriel\":\"mouadalli311@gmail.com\",\"mot_de_passe\":\"mouad1411\"}')",
+      "Bash(ps -p 51820 -o cmd,cwd)",
+      "Bash(kill 51820)",
+      "Bash(npm install *)",
+      "Bash(sed -n '13,25p' /home/mouad/Desktop/pfe_master/backend/app/Http/Controllers/Api/PostulationController.php)",
+      "Bash(sed -n '14,25p' /home/mouad/Desktop/pfe_master/backend/app/Http/Controllers/Api/DepotController.php)",
+      "Bash(curl -s -X POST http://localhost:8000/api/login -H 'Content-Type: application/json' -d '{\"courriel\":\"mouadalli311@gmail.com\",\"mot_de_passe\":\"mouad1411\"}')",
+      "Bash(curl -s http://localhost:8000/api/annees-universitaires -H 'Accept: application/json' -H 'Authorization: Bearer __CMDSUB_OUTPUT__')",
+      "Bash(awk -F: '{print $1}')",
+      "Bash(sed -i 's/bg-gradient-to-br from-blue-600 to-indigo-700/bg-slate-900/g' *.vue)",
+      "Bash(sed -i 's/bg-gradient-to-r from-blue-600 to-indigo-700/bg-slate-900/g' *.vue)",
+      "Bash(sed -i 's/hover:brightness-110/hover:bg-slate-700/g' *.vue)",
+      "Bash(sed -i 's/focus:border-blue-[0-9]*/focus:border-[#d6e87a]/g' *.vue)",
+      "Bash(sed -i 's/hover:border-blue-[0-9]*/hover:border-[#d6e87a]/g' *.vue)",
+      "Bash(php artisan *)"
+    ]
+  }
+}

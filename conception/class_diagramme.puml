@@ -1,0 +1,153 @@
+@startuml
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam shadowing false
+
+' =========================
+' USERS
+' =========================
+
+abstract class User {
+    +id : bigint
+    +name : string
+    +email : string
+    +password : string
+    +role : string
+    +created_at : timestamp
+    +updated_at : timestamp
+}
+
+class Student {
+    +student_code : string
+    +level : string
+    +group : string
+}
+
+class Professor {
+    +speciality : string
+    +grade : string
+    +office : string
+}
+
+class Coordinator {
+    +office : string
+}
+
+class Admin {
+}
+
+User <|-- Student
+User <|-- Professor
+User <|-- Coordinator
+User <|-- Admin
+
+' =========================
+' ORGANIZATION
+' =========================
+
+class Department {
+    +id : bigint
+    +name : string
+    +description : text
+}
+
+class AcademicYear {
+    +id : bigint
+    +year : string
+    +status : string
+}
+
+Department "1" -- "many" User
+AcademicYear "1" -- "many" Project
+
+' =========================
+' PROJECTS
+' =========================
+
+class Project {
+    +id : bigint
+    +title : string
+    +description : text
+    +domain : string
+    +status : string
+    +start_date : date
+    +end_date : date
+    +created_at : timestamp
+}
+
+class Application {
+    +id : bigint
+    +status : string
+    +application_date : date
+}
+
+class Submission {
+    +id : bigint
+    +file_path : string
+    +type : string
+    +validation_status : string
+    +submitted_at : timestamp
+}
+
+class Soutenance {
+    +id : bigint
+    +date : date
+    +time : time
+    +room : string
+    +status : string
+    +final_grade : float
+}
+
+' =========================
+' SIG / GIS
+' =========================
+
+class SpatialData {
+    +id : bigint
+    +geometry : geometry
+    +geojson : json
+    +surface : float
+    +created_at : timestamp
+}
+
+class MapLayer {
+    +id : bigint
+    +name : string
+    +type : string
+    +created_at : timestamp
+}
+
+' =========================
+' DASHBOARD
+' =========================
+
+class Statistics {
+    +id : bigint
+    +total_projects : int
+    +validated_projects : int
+    +projects_by_domain : json
+}
+
+' =========================
+' RELATIONS
+' =========================
+
+Professor "1" -- "many" Project : supervises >
+Coordinator "1" -- "many" Project : validates >
+Admin "1" -- "many" User : manages >
+
+Student "1" -- "many" Application
+Project "1" -- "many" Application
+
+Project "1" -- "many" Submission
+Student "1" -- "many" Submission
+
+Project "1" -- "1" Soutenance
+
+Project "1" -- "1" SpatialData
+SpatialData "1" -- "many" MapLayer
+
+Coordinator "1" -- "1" Statistics
+
+@enduml

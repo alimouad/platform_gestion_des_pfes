@@ -1,0 +1,136 @@
+@startuml
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+
+actor "Étudiant" as Etudiant
+actor "Professeur" as Prof
+actor "Coordinateur" as Coord
+actor "Super Administrateur" as Admin
+
+rectangle "Système de Gestion des PFE SIG" {
+
+    ' =========================
+    ' Authentification
+    ' =========================
+
+    usecase "S’authentifier" as UC1
+    usecase "Se déconnecter" as UC2
+
+    ' =========================
+    ' Étudiant
+    ' =========================
+
+    usecase "Consulter les sujets PFE" as UC3
+    usecase "Postuler à un projet" as UC4
+    usecase "Déposer les livrables" as UC5
+    usecase "Suivre l’état du projet" as UC6
+    usecase "Consulter les soutenances" as UC7
+    usecase "Visualiser le projet sur carte" as UC8
+
+    ' =========================
+    ' Professeur
+    ' =========================
+
+    usecase "Proposer un sujet PFE" as UC9
+    usecase "Encadrer les étudiants" as UC10
+    usecase "Valider les livrables" as UC11
+    usecase "Importer des données SIG" as UC12
+    usecase "Définir une zone d’étude" as UC13
+    usecase "Suivre l’avancement des projets" as UC14
+
+    ' =========================
+    ' Coordinateur
+    ' =========================
+
+    usecase "Valider les sujets proposés" as UC15
+    usecase "Affecter les étudiants aux projets" as UC16
+    usecase "Organiser les soutenances" as UC17
+    usecase "Consulter les statistiques" as UC18
+    usecase "Superviser les projets" as UC19
+
+    ' =========================
+    ' Super Admin
+    ' =========================
+
+    usecase "Gérer les utilisateurs" as UC20
+    usecase "Gérer les rôles et permissions" as UC21
+    usecase "Gérer les années universitaires" as UC22
+    usecase "Paramétrer le système" as UC23
+    usecase "Administrer la plateforme SIG" as UC24
+
+    ' =========================
+    ' SIG / Dashboard
+    ' =========================
+
+    usecase "Afficher la carte interactive" as UC25
+    usecase "Analyser les données spatiales" as UC26
+    usecase "Afficher le tableau de bord" as UC27
+}
+
+' =========================
+' Relations Étudiant
+' =========================
+
+Etudiant --> UC1
+Etudiant --> UC2
+Etudiant --> UC3
+Etudiant --> UC4
+Etudiant --> UC5
+Etudiant --> UC6
+Etudiant --> UC7
+Etudiant --> UC8
+
+' =========================
+' Relations Professeur
+' =========================
+
+Prof --> UC1
+Prof --> UC2
+Prof --> UC9
+Prof --> UC10
+Prof --> UC11
+Prof --> UC12
+Prof --> UC13
+Prof --> UC14
+Prof --> UC25
+
+' =========================
+' Relations Coordinateur
+' =========================
+
+Coord --> UC1
+Coord --> UC2
+Coord --> UC15
+Coord --> UC16
+Coord --> UC17
+Coord --> UC18
+Coord --> UC19
+Coord --> UC27
+
+' =========================
+' Relations Admin
+' =========================
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC20
+Admin --> UC21
+Admin --> UC22
+Admin --> UC23
+Admin --> UC24
+Admin --> UC27
+
+' =========================
+' Relations Include
+' =========================
+
+UC9 .> UC12 : <<include>>
+UC9 .> UC13 : <<include>>
+
+UC27 .> UC18 : <<include>>
+UC25 .> UC26 : <<include>>
+
+@enduml
