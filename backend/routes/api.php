@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CoucheCarteController;
 use App\Http\Controllers\Api\DepartementController;
 use App\Http\Controllers\Api\DepotController;
 use App\Http\Controllers\Api\DonneeSpatialeController;
+use App\Http\Controllers\Api\FichierSigController;
 use App\Http\Controllers\Api\EtudiantController;
 use App\Http\Controllers\Api\PostulationController;
 use App\Http\Controllers\Api\ProfesseurController;
@@ -85,4 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── SIG ───────────────────────────────────────────────────────────────
     Route::apiResource('donnees-spatiales', DonneeSpatialeController::class);
     Route::apiResource('couches-cartes',    CoucheCarteController::class);
+    Route::post('sig/upload',              [FichierSigController::class, 'upload']);
+    Route::get('sig/projet/{projetId}',    [FichierSigController::class, 'show']);
 });

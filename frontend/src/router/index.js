@@ -57,6 +57,7 @@ const router = createRouter({
                 { path: 'projets',      name: 'etudiant.projets',      component: () => import('@/views/etudiant/Projets.vue') },
                 { path: 'postulations', name: 'etudiant.postulations', component: () => import('@/views/etudiant/Postulations.vue') },
                 { path: 'depots',       name: 'etudiant.depots',       component: () => import('@/views/etudiant/Depots.vue') },
+                { path: 'sig',          name: 'etudiant.sig',          component: () => import('@/views/etudiant/Sig.vue') },
                 { path: 'soutenance',   name: 'etudiant.soutenance',   component: () => import('@/views/etudiant/Soutenance.vue') },
                 { path: 'profil',       name: 'etudiant.profil',       component: () => import('@/views/etudiant/Profil.vue') },
             ],

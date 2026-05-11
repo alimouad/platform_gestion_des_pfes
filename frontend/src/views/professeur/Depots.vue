@@ -16,6 +16,12 @@ async function fetchAll() {
   try {
     const me = await api.get('/me')
     user.value = me.data?.data || {}
+    localStorage.setItem('admin_user', JSON.stringify(user.value))
+
+    if (!profId.value) {
+      loading.value = false
+      return
+    }
 
     const [de, pr] = await Promise.all([
       api.get('/depots'),

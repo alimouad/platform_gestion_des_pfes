@@ -33,13 +33,15 @@ class Projet extends Model
         'ville',
         'latitude',
         'longitude',
+        'zone_etude',
     ];
 
     protected function casts(): array
     {
         return [
-            'date_debut' => 'date',
-            'date_fin' => 'date',
+            'date_debut'  => 'date',
+            'date_fin'    => 'date',
+            'zone_etude'  => 'array',
         ];
     }
 

@@ -17,10 +17,11 @@ RUN apk add --no-cache \
     make \
     pkgconfig \
     zlib-dev \
+    libzip-dev \
     oniguruma-dev \
     libxml2-dev
 
-RUN docker-php-ext-install pdo pdo_pgsql pgsql
+RUN docker-php-ext-install pdo pdo_pgsql pgsql zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

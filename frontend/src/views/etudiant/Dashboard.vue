@@ -23,7 +23,7 @@ const monProjet = computed(() => {
 const mesPostulations  = computed(() => postulations.value)
 const mesDepots        = computed(() => depots.value)
 const maSoutenance     = computed(() =>
-  soutenances.value.find(s => s.projet_id === monProjet.value?.id) || null
+  soutenances.value.find(s => Number(s.projet_id) === Number(monProjet.value?.id)) || null
 )
 
 const stats = computed(() => ({
@@ -34,10 +34,9 @@ const stats = computed(() => ({
 }))
 
 const projetsDisponibles = computed(() => {
-  // Projets ouverts à postulation = soumis ou brouillon, sans postulation acceptée
   return projets.value
-    .filter(p => ['soumis', 'brouillon'].includes(p.statut))
-    .filter(p => !mesPostulations.value.some(po => po.projet_id === p.id))
+    .filter(p => !['soutenu', 'rejete'].includes(p.statut))
+    .filter(p => !mesPostulations.value.some(po => Number(po.projet_id) === Number(p.id)))
     .slice(0, 4)
 })
 
@@ -55,10 +54,10 @@ async function fetchAll() {
       api.get('/depots'),
       api.get('/soutenances'),
     ])
-    projets.value = pr.data.data
-    // Filter to only this student's data (in case API returns all)
-    postulations.value = po.data.data.filter(p => p.etudiant_id === etudiantId.value)
-    depots.value       = de.data.data.filter(d => d.etudiant_id === etudiantId.value)
+    projets.value      = pr.data.data
+    const eid = Number(etudiantId.value)
+    postulations.value = eid ? po.data.data.filter(p => Number(p.etudiant_id) === eid) : []
+    depots.value       = eid ? de.data.data.filter(d => Number(d.etudiant_id) === eid) : []
     soutenances.value  = so.data.data
   } catch {}
   loading.value = false

@@ -30,9 +30,15 @@ class DepotController extends CrudController
         ];
     }
 
-    public function valider(int $id): JsonResponse
+    public function valider(Request $request, int $id): JsonResponse
     {
-        $depot = Depot::findOrFail($id);
+        $depot = Depot::with('projet')->findOrFail($id);
+        $prof  = $request->user()->professeur;
+
+        if ($prof && $depot->projet?->professeur_id !== $prof->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $depot->update(['statut_validation' => 'valide', 'commentaire' => null]);
 
         return response()->json(['data' => $depot->fresh($this->relations())]);
@@ -40,8 +46,14 @@ class DepotController extends CrudController
 
     public function rejeterDepot(Request $request, int $id): JsonResponse
     {
-        $data = $request->validate(['commentaire' => ['nullable', 'string']]);
-        $depot = Depot::findOrFail($id);
+        $data  = $request->validate(['commentaire' => ['nullable', 'string']]);
+        $depot = Depot::with('projet')->findOrFail($id);
+        $prof  = $request->user()->professeur;
+
+        if ($prof && $depot->projet?->professeur_id !== $prof->id) {
+            return response()->json(['message' => 'Non autorisé'], 403);
+        }
+
         $depot->update(['statut_validation' => 'rejete', 'commentaire' => $data['commentaire'] ?? null]);
 
         return response()->json(['data' => $depot->fresh($this->relations())]);

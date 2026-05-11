@@ -22,7 +22,8 @@
       "Bash(sed -i 's/hover:brightness-110/hover:bg-slate-700/g' *.vue)",
       "Bash(sed -i 's/focus:border-blue-[0-9]*/focus:border-[#d6e87a]/g' *.vue)",
       "Bash(sed -i 's/hover:border-blue-[0-9]*/hover:border-[#d6e87a]/g' *.vue)",
-      "Bash(php artisan *)"
+      "Bash(php artisan *)",
+      "Bash(docker exec *)"
     ]
   }
 }

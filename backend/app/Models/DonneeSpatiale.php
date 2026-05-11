@@ -17,6 +17,7 @@ class DonneeSpatiale extends Model
     protected $fillable = [
         'projet_id',
         'type_geometrie',
+        'nom_fichier',
         'geojson',
         'surface',
         'description_zone',

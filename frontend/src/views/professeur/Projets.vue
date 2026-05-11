@@ -27,12 +27,21 @@ const mapRef = ref(null)
 let leafletMap = null
 let markers = []
 
+const showZonePicker = ref(false)
+const zonePickerRef = ref(null)
+let pickerMap = null
+let pickerMarker = null
+let pickerRect = null
+let drawStart = null
+let isDrawing = false
+
 const defaultForm = () => ({
   titre: '', description: '', domaine: '',
   statut: 'soumis',
   professeur_id: profId.value,
   annee_universitaire_id: '',
   ville: '', latitude: '', longitude: '',
+  zone_etude: null,
 })
 
 async function fetchAll() {
@@ -77,6 +86,7 @@ function openEdit(p) {
     statut: p.statut, professeur_id: profId.value,
     annee_universitaire_id: p.annee_universitaire_id,
     ville: p.ville || '', latitude: p.latitude || '', longitude: p.longitude || '',
+    zone_etude: p.zone_etude || null,
   }
   error.value = ''
   showModal.value = true
@@ -111,7 +121,7 @@ async function remove(id) {
   } catch (e) { alert(e.response?.data?.message || 'Erreur') }
 }
 
-function initMap() {
+async function initMap() {
   if (!mapRef.value) return
   if (!leafletMap) {
     leafletMap = L.map(mapRef.value).setView([28.0, 2.5], 5)
@@ -126,10 +136,44 @@ function initMap() {
     html: `<div style="width:28px;height:28px;background:#1e4a49;border:3px solid #d6e87a;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25)"><div style="width:8px;height:8px;background:#d6e87a;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"></div></div>`,
     iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -30],
   })
-  mappableProjects.value.forEach(p => {
+
+  // Fetch SIG data for all mappable projects in parallel
+  const sigResults = await Promise.allSettled(
+    mappableProjects.value.map(p => api.get(`/sig/projet/${p.id}`).catch(() => null))
+  )
+
+  mappableProjects.value.forEach((p, i) => {
+    // Overlay student GeoJSON if available
+    const sigData = sigResults[i]?.value?.data?.data
+    if (sigData?.geojson) {
+      try {
+        const geojson = typeof sigData.geojson === 'string' ? JSON.parse(sigData.geojson) : sigData.geojson
+        const layer = L.geoJSON(geojson, {
+          style: { color: '#1e4a49', weight: 2, fillColor: '#d6e87a', fillOpacity: 0.3 },
+          pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 5, fillColor: '#d6e87a', color: '#1e4a49', weight: 2, fillOpacity: 0.9 }),
+          onEachFeature: (_f, l) => {
+            if (_f.properties && Object.keys(_f.properties).length) {
+              const props = Object.entries(_f.properties).filter(([,v]) => v != null).slice(0, 4)
+                .map(([k,v]) => `<p style="font-size:11px;color:#64748b;margin:0">${k}: ${v}</p>`).join('')
+              l.bindPopup(`<div style="font-family:system-ui"><p style="font-weight:700;font-size:12px;color:#1e293b;margin:0 0 4px">${p.titre}</p>${props}</div>`)
+            }
+          }
+        }).addTo(leafletMap)
+        markers.push(layer)
+      } catch {}
+    }
+
+    // Draw zone rectangle if defined
+    if (p.zone_etude) {
+      const z = p.zone_etude
+      const rect = L.rectangle([[z.south, z.west], [z.north, z.east]], {
+        color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.15, weight: 2, dashArray: '6'
+      }).addTo(leafletMap)
+      markers.push(rect)
+    }
     const m = L.marker([p.latitude, p.longitude], { icon: customIcon })
       .addTo(leafletMap)
-      .bindPopup(`<div style="font-family:system-ui;min-width:180px"><p style="font-weight:800;font-size:13px;color:#1e293b;margin:0 0 4px">${p.titre}</p><p style="font-size:11px;color:#64748b;margin:0 0 2px">${p.domaine || ''}</p><p style="font-size:11px;color:#64748b;margin:0">📍 ${p.ville || ''}</p><span style="display:inline-block;margin-top:6px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:#d6e87a;color:#1e293b">${statutLabel[p.statut] || p.statut}</span></div>`)
+      .bindPopup(`<div style="font-family:system-ui;min-width:180px"><p style="font-weight:800;font-size:13px;color:#1e293b;margin:0 0 4px">${p.titre}</p><p style="font-size:11px;color:#64748b;margin:0 0 2px">${p.domaine || ''}</p><p style="font-size:11px;color:#64748b;margin:0">📍 ${p.ville || ''}</p>${p.zone_etude ? '<p style="font-size:10px;color:#6a8a40;margin:4px 0 0;font-weight:700">📐 Zone d\'étude définie</p>' : ''}${sigResults[i]?.value?.data?.data ? '<p style="font-size:10px;color:#1e4a49;margin:4px 0 0;font-weight:700">🗺 Données SIG importées</p>' : ''}<span style="display:inline-block;margin-top:6px;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;background:#d6e87a;color:#1e293b">${statutLabel[p.statut] || p.statut}</span></div>`)
     markers.push(m)
   })
   if (markers.length > 0) leafletMap.fitBounds(L.featureGroup(markers).getBounds().pad(0.2))
@@ -138,6 +182,91 @@ function initMap() {
 async function switchView(mode) {
   viewMode.value = mode
   if (mode === 'map') { await nextTick(); initMap() }
+}
+
+// ── ZONE PICKER ──────────────────────────────────────────────
+async function openZonePicker() {
+  showZonePicker.value = true
+  await nextTick()
+  if (pickerMap) {
+    pickerMap.remove()
+    pickerMap = null
+    pickerMarker = null
+    pickerRect = null
+  }
+  pickerMap = L.map(zonePickerRef.value).setView([28.0, 2.5], 5)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(pickerMap)
+
+  // If existing zone, show it
+  if (form.value.zone_etude) {
+    const z = form.value.zone_etude
+    pickerRect = L.rectangle([[z.south, z.west], [z.north, z.east]], {
+      color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.25, weight: 2
+    }).addTo(pickerMap)
+    pickerMap.fitBounds(pickerRect.getBounds().pad(0.1))
+  } else if (form.value.latitude && form.value.longitude) {
+    pickerMap.setView([form.value.latitude, form.value.longitude], 8)
+  }
+
+  // Draw rectangle on click+drag
+  let startLatLng = null
+  pickerMap.on('mousedown', (e) => {
+    isDrawing = true
+    startLatLng = e.latlng
+    if (pickerRect) { pickerRect.remove(); pickerRect = null }
+    if (pickerMarker) { pickerMarker.remove(); pickerMarker = null }
+  })
+  pickerMap.on('mousemove', (e) => {
+    if (!isDrawing || !startLatLng) return
+    if (pickerRect) pickerRect.remove()
+    pickerRect = L.rectangle([startLatLng, e.latlng], {
+      color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.25, weight: 2, dashArray: '6'
+    }).addTo(pickerMap)
+  })
+  pickerMap.on('mouseup', (e) => {
+    if (!isDrawing) return
+    isDrawing = false
+    if (!startLatLng) return
+    const bounds = L.latLngBounds(startLatLng, e.latlng)
+    if (pickerRect) pickerRect.remove()
+    pickerRect = L.rectangle(bounds, {
+      color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.3, weight: 2
+    }).addTo(pickerMap)
+    const center = bounds.getCenter()
+    drawStart = { bounds, center }
+    startLatLng = null
+  })
+}
+
+function confirmZone() {
+  if (drawStart) {
+    const { bounds, center } = drawStart
+    form.value.latitude  = parseFloat(center.lat.toFixed(6))
+    form.value.longitude = parseFloat(center.lng.toFixed(6))
+    form.value.zone_etude = {
+      north: parseFloat(bounds.getNorth().toFixed(6)),
+      south: parseFloat(bounds.getSouth().toFixed(6)),
+      east:  parseFloat(bounds.getEast().toFixed(6)),
+      west:  parseFloat(bounds.getWest().toFixed(6)),
+    }
+  }
+  closeZonePicker()
+}
+
+function clearZone() {
+  form.value.zone_etude = null
+  form.value.latitude = ''
+  form.value.longitude = ''
+  drawStart = null
+  if (pickerRect) { pickerRect.remove(); pickerRect = null }
+}
+
+function closeZonePicker() {
+  showZonePicker.value = false
+  drawStart = null
+  isDrawing = false
 }
 
 const statutLabel = { brouillon: 'Brouillon', soumis: 'Soumis', en_cours: 'En cours', valide: 'Validé', soutenu: 'Soutenu', rejete: 'Rejeté' }
@@ -326,20 +455,39 @@ onMounted(fetchAll)
             </div>
             <!-- SIG Location -->
             <div class="rounded-2xl border border-[#d6e87a]/50 bg-[#f0f3eb] p-4 space-y-3">
-              <p class="text-[11px] font-black uppercase tracking-widest text-[#4a5e20] flex items-center gap-1.5">
-                <i class="fa-solid fa-map-location-dot text-[#d6e87a]"></i> Localisation SIG
-              </p>
+              <div class="flex items-center justify-between">
+                <p class="text-[11px] font-black uppercase tracking-widest text-[#4a5e20] flex items-center gap-1.5">
+                  <i class="fa-solid fa-map-location-dot text-[#d6e87a]"></i> Localisation SIG
+                </p>
+                <div class="flex gap-2">
+                  <button type="button" @click="openZonePicker"
+                    class="flex items-center gap-1.5 rounded-xl bg-[#1e4a49] px-3 py-1.5 text-[11px] font-bold text-[#d6e87a] hover:bg-[#163836] transition">
+                    <i class="fa-solid fa-draw-polygon"></i> Dessiner une zone
+                  </button>
+                  <button v-if="form.zone_etude" type="button" @click="clearZone"
+                    class="flex items-center gap-1 rounded-xl bg-red-50 px-2.5 py-1.5 text-[11px] font-bold text-red-400 hover:bg-red-100 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Zone preview badge -->
+              <div v-if="form.zone_etude" class="flex items-center gap-2 rounded-xl bg-[#d6e87a]/30 border border-[#d6e87a] px-3 py-2">
+                <i class="fa-solid fa-vector-square text-[#4a5e20] text-sm"></i>
+                <span class="text-xs font-semibold text-[#4a5e20]">Zone définie · cliquez "Dessiner" pour modifier</span>
+              </div>
+
               <div>
                 <label class="mb-1.5 block text-xs font-bold text-slate-600">Ville / Région</label>
                 <input v-model="form.ville" placeholder="ex: Alger, Oran…" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition" />
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>
-                  <label class="mb-1.5 block text-xs font-bold text-slate-600">Latitude</label>
+                  <label class="mb-1.5 block text-xs font-bold text-slate-600">Latitude (centre)</label>
                   <input v-model="form.latitude" type="number" step="any" placeholder="36.7370" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition" />
                 </div>
                 <div>
-                  <label class="mb-1.5 block text-xs font-bold text-slate-600">Longitude</label>
+                  <label class="mb-1.5 block text-xs font-bold text-slate-600">Longitude (centre)</label>
                   <input v-model="form.longitude" type="number" step="any" placeholder="3.0870" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition" />
                 </div>
               </div>
@@ -351,6 +499,60 @@ onMounted(fetchAll)
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ZONE PICKER MODAL -->
+    <Teleport to="body">
+      <div v-if="showZonePicker" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="w-full max-w-3xl rounded-[2rem] bg-white shadow-2xl overflow-hidden flex flex-col" style="height:580px">
+          <!-- Header -->
+          <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1e4a49]">
+                <i class="fa-solid fa-draw-polygon text-[#d6e87a] text-sm"></i>
+              </div>
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900">Dessiner la zone d'étude</h2>
+                <p class="text-xs text-slate-400">Cliquez et faites glisser sur la carte pour délimiter la zone</p>
+              </div>
+            </div>
+            <button @click="closeZonePicker" class="flex h-8 w-8 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-100 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Instruction bar -->
+          <div class="flex items-center gap-2 bg-[#f0f3eb] px-5 py-2.5 text-xs font-semibold text-[#4a5e20] shrink-0">
+            <i class="fa-solid fa-hand-pointer text-[#d6e87a]"></i>
+            Maintenez le clic et faites glisser pour dessiner un rectangle · Recommencez pour redessiner
+          </div>
+
+          <!-- Map -->
+          <div ref="zonePickerRef" class="flex-1" style="cursor:crosshair"></div>
+
+          <!-- Footer -->
+          <div class="flex items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 shrink-0 bg-white">
+            <div class="text-xs text-slate-400">
+              <span v-if="drawStart">
+                <i class="fa-solid fa-check-circle text-green-500 mr-1"></i>
+                Zone sélectionnée · N {{ drawStart.bounds.getNorth().toFixed(4) }} S {{ drawStart.bounds.getSouth().toFixed(4) }}
+              </span>
+              <span v-else class="text-slate-400">Aucune zone dessinée</span>
+            </div>
+            <div class="flex gap-3">
+              <button type="button" @click="closeZonePicker"
+                class="rounded-xl border border-slate-200 px-5 py-2 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+                Annuler
+              </button>
+              <button type="button" @click="confirmZone" :disabled="!drawStart"
+                class="rounded-xl px-5 py-2 text-sm font-bold transition shadow"
+                :class="drawStart ? 'bg-[#1e4a49] text-[#d6e87a] hover:bg-[#163836]' : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
+                <i class="fa-solid fa-check mr-1.5"></i> Confirmer la zone
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </Teleport>

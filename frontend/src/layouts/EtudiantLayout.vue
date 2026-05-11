@@ -13,6 +13,7 @@ const nav = [
   { icon: 'fa-compass',        label: 'Projets',         to: '/etudiant/projets' },
   { icon: 'fa-file-signature', label: 'Mes postulations',to: '/etudiant/postulations' },
   { icon: 'fa-cloud-arrow-up', label: 'Mes dépôts',      to: '/etudiant/depots' },
+  { icon: 'fa-map-location-dot', label: 'Données SIG',  to: '/etudiant/sig' },
   { icon: 'fa-graduation-cap', label: 'Ma soutenance',   to: '/etudiant/soutenance' },
   { icon: 'fa-user',           label: 'Mon profil',      to: '/etudiant/profil' },
 ]
