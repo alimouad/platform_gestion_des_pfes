@@ -8,7 +8,7 @@ const user = ref(JSON.parse(localStorage.getItem('admin_user') || '{}'))
 const etudiantId = computed(() => user.value?.etudiant?.id)
 
 const postulations = ref([])
-const existingData = ref(null)
+const importedFiles = ref([])   // array of donnees_spatiales rows
 const loading = ref(true)
 const uploading = ref(false)
 const error = ref('')
@@ -18,32 +18,12 @@ const selectedFile = ref(null)
 const fileInput = ref(null)
 
 let map = null
-let geoLayer = null
+let geoLayers = []
 
 const monProjet = computed(() => {
   const accepted = postulations.value.find(p => p.statut === 'accepte')
   return accepted?.projet || null
 })
-
-async function fetchAll() {
-  loading.value = true
-  try {
-    const eid = Number(etudiantId.value)
-    const [po, si] = await Promise.all([
-      api.get('/postulations'),
-      monProjet.value ? api.get(`/sig/projet/${monProjet.value.id}`) : Promise.resolve({ data: { data: null } }),
-    ])
-    postulations.value = eid ? po.data.data.filter(p => Number(p.etudiant_id) === eid) : []
-
-    if (monProjet.value) {
-      const sigRes = await api.get(`/sig/projet/${monProjet.value.id}`).catch(() => null)
-      existingData.value = sigRes?.data?.data || null
-    }
-  } catch {}
-  loading.value = false
-  await nextTick()
-  initMap()
-}
 
 onMounted(async () => {
   loading.value = true
@@ -51,11 +31,7 @@ onMounted(async () => {
   try {
     const po = await api.get('/postulations')
     postulations.value = eid ? po.data.data.filter(p => Number(p.etudiant_id) === eid) : []
-
-    if (monProjet.value) {
-      const sigRes = await api.get(`/sig/projet/${monProjet.value.id}`).catch(() => null)
-      existingData.value = sigRes?.data?.data || null
-    }
+    if (monProjet.value) await fetchSigData()
   } catch {}
   loading.value = false
   await nextTick()
@@ -66,16 +42,21 @@ onUnmounted(() => {
   if (map) { map.remove(); map = null }
 })
 
+async function fetchSigData() {
+  const res = await api.get(`/sig/projet/${monProjet.value.id}`).catch(() => null)
+  importedFiles.value = res?.data?.data || []
+}
+
 function initMap() {
   const el = document.getElementById('sig-map')
   if (!el || map) return
-  map = L.map('sig-map').setView([31.5, -7.5], 5)
+  map = L.map('sig-map').setView([29, -8], 5)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
   }).addTo(map)
 
-  if (existingData.value?.geojson) {
-    loadGeoJsonOnMap(existingData.value.geojson)
+  if (importedFiles.value.length) {
+    loadAllOnMap()
   } else if (monProjet.value?.zone_etude) {
     const z = monProjet.value.zone_etude
     const bounds = [[z.south, z.west], [z.north, z.east]]
@@ -84,19 +65,27 @@ function initMap() {
   }
 }
 
-function loadGeoJsonOnMap(geojson) {
+function loadAllOnMap() {
   if (!map) return
-  if (geoLayer) { map.removeLayer(geoLayer); geoLayer = null }
-  try {
-    const data = typeof geojson === 'string' ? JSON.parse(geojson) : geojson
-    geoLayer = L.geoJSON(data, {
-      style: { color: '#1e4a49', weight: 2, fillColor: '#d6e87a', fillOpacity: 0.35 },
-      pointToLayer: (f, latlng) => L.circleMarker(latlng, { radius: 6, fillColor: '#d6e87a', color: '#1e4a49', weight: 2, fillOpacity: 0.9 }),
-    }).addTo(map)
-    if (geoLayer.getBounds().isValid()) map.fitBounds(geoLayer.getBounds(), { padding: [30, 30] })
-  } catch (e) {
-    error.value = 'Impossible d\'afficher les données sur la carte.'
-  }
+  geoLayers.forEach(l => map.removeLayer(l))
+  geoLayers = []
+
+  const colors = ['#1e4a49', '#4a5e20', '#2d6a4f', '#1b4332', '#386641']
+  importedFiles.value.forEach((record, i) => {
+    if (!record.geojson) return
+    const color = colors[i % colors.length]
+    try {
+      const data = typeof record.geojson === 'string' ? JSON.parse(record.geojson) : record.geojson
+      const layer = L.geoJSON(data, {
+        style: { color, weight: 2, fillColor: '#d6e87a', fillOpacity: 0.3 },
+        pointToLayer: (_f, latlng) => L.circleMarker(latlng, { radius: 6, fillColor: '#d6e87a', color, weight: 2, fillOpacity: 0.9 }),
+      }).addTo(map)
+      geoLayers.push(layer)
+    } catch {}
+  })
+
+  const group = L.featureGroup(geoLayers)
+  if (group.getBounds().isValid()) map.fitBounds(group.getBounds(), { padding: [30, 30] })
 }
 
 function onFileChange(e) {
@@ -138,16 +127,20 @@ async function upload() {
     const fd = new FormData()
     fd.append('fichier', selectedFile.value)
     fd.append('projet_id', monProjet.value.id)
-    const res = await api.post('/sig/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-    existingData.value = res.data.data
+    await api.post('/sig/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    await fetchSigData()
     success.value = 'Données importées avec succès !'
     selectedFile.value = null
     if (fileInput.value) fileInput.value.value = ''
-    if (existingData.value?.geojson) loadGeoJsonOnMap(existingData.value.geojson)
+    loadAllOnMap()
   } catch (e) {
     error.value = e.response?.data?.message || 'Erreur lors de l\'import.'
   }
   uploading.value = false
+}
+
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 }
 </script>
 
@@ -184,80 +177,95 @@ async function upload() {
           <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Projet actif</p>
           <p class="font-bold text-slate-800">{{ monProjet.titre }}</p>
         </div>
-        <div v-if="existingData" class="ml-auto flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5">
+        <div v-if="importedFiles.length" class="ml-auto flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-1.5">
           <i class="fa-solid fa-circle-check text-emerald-500 text-xs"></i>
-          <span class="text-xs font-semibold text-emerald-700">Données importées</span>
+          <span class="text-xs font-semibold text-emerald-700">{{ importedFiles.length }} fichier(s) importé(s)</span>
         </div>
       </div>
 
       <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-        <!-- Upload card -->
-        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 class="mb-4 text-sm font-extrabold uppercase tracking-widest text-slate-500">Importer un fichier</h2>
+        <!-- Left: upload + file history -->
+        <div class="space-y-4">
 
-          <!-- Drop zone -->
-          <div
-            @dragover.prevent
-            @drop.prevent="onDrop"
-            @click="fileInput?.click()"
-            class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-10 transition hover:border-[#d6e87a] hover:bg-[#f8faef]"
-          >
-            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d6e87a]/40">
-              <i class="fa-solid fa-cloud-arrow-up text-2xl text-[#4a5e20]"></i>
-            </div>
-            <div class="text-center">
-              <p class="font-bold text-slate-700">Glissez-déposez ou cliquez pour choisir</p>
-              <p class="mt-1 text-xs text-slate-400">GeoJSON (.geojson, .json) ou Shapefile ZIP (.zip) — max 20 MB</p>
-            </div>
-            <input ref="fileInput" type="file" accept=".geojson,.json,.zip" class="hidden" @change="onFileChange" />
-          </div>
+          <!-- Upload card -->
+          <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-sm font-extrabold uppercase tracking-widest text-slate-500">Importer un fichier</h2>
 
-          <!-- Selected file preview -->
-          <div v-if="selectedFile" class="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d6e87a]">
-              <i :class="`fa-solid ${fileIcon} text-[#4a5e20]`"></i>
+            <div
+              @dragover.prevent
+              @drop.prevent="onDrop"
+              @click="fileInput?.click()"
+              class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-8 transition hover:border-[#d6e87a] hover:bg-[#f8faef]"
+            >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d6e87a]/40">
+                <i class="fa-solid fa-cloud-arrow-up text-xl text-[#4a5e20]"></i>
+              </div>
+              <div class="text-center">
+                <p class="font-bold text-slate-700">Glissez-déposez ou cliquez</p>
+                <p class="mt-1 text-xs text-slate-400">GeoJSON (.geojson, .json) ou Shapefile ZIP (.zip) — max 20 MB</p>
+              </div>
+              <input ref="fileInput" type="file" accept=".geojson,.json,.zip" class="hidden" @change="onFileChange" />
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="truncate text-sm font-semibold text-slate-800">{{ selectedFile.name }}</p>
-              <p class="text-xs text-slate-400">{{ fileSizeLabel }}</p>
+
+            <div v-if="selectedFile" class="mt-4 flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d6e87a]">
+                <i :class="`fa-solid ${fileIcon} text-[#4a5e20]`"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="truncate text-sm font-semibold text-slate-800">{{ selectedFile.name }}</p>
+                <p class="text-xs text-slate-400">{{ fileSizeLabel }}</p>
+              </div>
+              <button @click.stop="selectedFile = null; fileInput && (fileInput.value = '')" class="text-slate-400 hover:text-red-400">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
             </div>
-            <button @click.stop="selectedFile = null; fileInput && (fileInput.value = '')" class="text-slate-400 hover:text-red-400">
-              <i class="fa-solid fa-xmark"></i>
+
+            <div v-if="error" class="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+            </div>
+            <div v-if="success" class="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
+              <i class="fa-solid fa-circle-check"></i> {{ success }}
+            </div>
+
+            <button
+              @click="upload"
+              :disabled="!selectedFile || uploading"
+              class="mt-5 w-full rounded-2xl bg-[#1e4a49] py-3 text-sm font-bold text-white transition hover:bg-[#163635] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <i v-if="uploading" class="fa-solid fa-circle-notch animate-spin"></i>
+              <i v-else class="fa-solid fa-upload"></i>
+              {{ uploading ? 'Import en cours…' : 'Importer les données' }}
             </button>
           </div>
 
-          <!-- Alerts -->
-          <div v-if="error" class="mt-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600 flex items-center gap-2">
-            <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
-          </div>
-          <div v-if="success" class="mt-4 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
-            <i class="fa-solid fa-circle-check"></i> {{ success }}
+          <!-- File history -->
+          <div v-if="importedFiles.length" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-4 text-sm font-extrabold uppercase tracking-widest text-slate-500">Historique des imports</h2>
+            <div class="space-y-2">
+              <div
+                v-for="(f, i) in importedFiles" :key="f.id"
+                class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3"
+              >
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#d6e87a] text-xs font-black text-[#4a5e20]">
+                  {{ i + 1 }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="truncate text-sm font-semibold text-slate-800">{{ f.nom_fichier || '—' }}</p>
+                  <p class="text-xs text-slate-400">{{ formatDate(f.created_at) }} · {{ f.type_geometrie || 'GeoJSON' }}</p>
+                </div>
+                <i class="fa-solid fa-layer-group text-slate-300 text-sm"></i>
+              </div>
+            </div>
           </div>
 
-          <button
-            @click="upload"
-            :disabled="!selectedFile || uploading"
-            class="mt-5 w-full rounded-2xl bg-[#1e4a49] py-3 text-sm font-bold text-white transition hover:bg-[#163635] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            <i v-if="uploading" class="fa-solid fa-circle-notch animate-spin"></i>
-            <i v-else class="fa-solid fa-upload"></i>
-            {{ uploading ? 'Import en cours…' : 'Importer les données' }}
-          </button>
-
-          <!-- Existing data info -->
-          <div v-if="existingData" class="mt-5 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-xs text-slate-500 space-y-1">
-            <p class="font-semibold text-slate-700">Dernière importation</p>
-            <p>Fichier : <span class="font-medium text-slate-800">{{ existingData.nom_fichier || '—' }}</span></p>
-            <p>Mis à jour : <span class="font-medium text-slate-800">{{ existingData.updated_at ? new Date(existingData.updated_at).toLocaleDateString('fr-FR') : '—' }}</span></p>
-          </div>
         </div>
 
         <!-- Map preview -->
         <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col">
           <h2 class="mb-4 text-sm font-extrabold uppercase tracking-widest text-slate-500">Aperçu sur la carte</h2>
-          <div id="sig-map" class="flex-1 rounded-2xl overflow-hidden" style="min-height:360px"></div>
-          <p v-if="!existingData" class="mt-3 text-center text-xs text-slate-400">
+          <div id="sig-map" class="flex-1 rounded-2xl overflow-hidden" style="min-height:400px"></div>
+          <p v-if="!importedFiles.length" class="mt-3 text-center text-xs text-slate-400">
             Importez des données pour les visualiser ici
           </p>
         </div>
@@ -265,7 +273,6 @@ async function upload() {
       </div>
     </template>
 
-    <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-20">
       <i class="fa-solid fa-circle-notch animate-spin text-3xl text-[#d6e87a]"></i>
     </div>

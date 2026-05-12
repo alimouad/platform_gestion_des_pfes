@@ -30,7 +30,7 @@ const monProjet = computed(() => {
   return accepted?.projet || null
 })
 
-const REQUIRED_TYPES = ['rapport', 'code', 'presentation']
+const REQUIRED_TYPES = ['rapport', 'donnees', 'presentation']
 
 const requiredStatus = computed(() => {
   return REQUIRED_TYPES.map(type => {
@@ -84,7 +84,7 @@ async function save() {
 
 const typeIcon = {
   rapport:      { icon: 'fa-file-pdf',         color: 'bg-red-50 text-red-600' },
-  code:         { icon: 'fa-file-code',        color: 'bg-blue-50 text-blue-600' },
+  donnees:         { icon: 'fa-file-code',        color: 'bg-blue-50 text-blue-600' },
   presentation: { icon: 'fa-file-powerpoint',  color: 'bg-orange-50 text-orange-600' },
 }
 function ti(t) { return typeIcon[t] || { icon: 'fa-file', color: 'bg-slate-100 text-slate-600' } }

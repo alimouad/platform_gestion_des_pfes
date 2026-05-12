@@ -51,46 +51,32 @@ class FichierSigController extends Controller
             return response()->json(['message' => 'Format non supporté. Utilisez GeoJSON ou ZIP (shapefile).'], 422);
         }
 
-        // Save the original file to disk
+        // Save original file to disk
         $file->store("sig/projet_{$projet->id}", 'public');
 
-        // Also save the parsed GeoJSON as a .geojson file
+        // Save parsed GeoJSON as a file
         $geojsonPath = "sig/projet_{$projet->id}/" . pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME) . '.geojson';
         Storage::disk('public')->put($geojsonPath, json_encode($geojson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
-        // Merge new features into existing FeatureCollection
-        $existing = DonneeSpatiale::where('projet_id', $projet->id)->first();
-        $existingFeatures = [];
-        if ($existing && isset($existing->geojson['features'])) {
-            $existingFeatures = $existing->geojson['features'];
-        }
-
-        $newFeatures = $geojson['features'] ?? [$geojson];
-        $merged = [
-            'type'     => 'FeatureCollection',
-            'features' => array_merge($existingFeatures, $newFeatures),
-        ];
-
-        $files = $existing ? ($existing->nom_fichier ? $existing->nom_fichier . ', ' : '') : '';
-        $files .= $file->getClientOriginalName();
-
-        $donnee = DonneeSpatiale::updateOrCreate(
-            ['projet_id' => $projet->id],
-            [
-                'type_geometrie'   => 'FeatureCollection',
-                'nom_fichier'      => $files,
-                'geojson'          => $merged,
-                'description_zone' => null,
-            ]
-        );
+        // Each upload is its own row
+        $donnee = DonneeSpatiale::create([
+            'projet_id'        => $projet->id,
+            'type_geometrie'   => $geojson['type'] ?? 'FeatureCollection',
+            'nom_fichier'      => $file->getClientOriginalName(),
+            'geojson'          => $geojson,
+            'description_zone' => null,
+        ]);
 
         return response()->json(['data' => $donnee], 201);
     }
 
     public function show(int $projetId): JsonResponse
     {
-        $donnee = DonneeSpatiale::where('projet_id', $projetId)->first();
-        return response()->json(['data' => $donnee]);
+        $donnees = DonneeSpatiale::where('projet_id', $projetId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json(['data' => $donnees]);
     }
 
     private function shapefileZipToGeojson(UploadedFile $file): ?array
@@ -106,7 +92,6 @@ class FichierSigController extends Controller
 
             $shpFiles = glob($tmpDir . '/*.shp');
             if (empty($shpFiles)) {
-                // Try recursive search (files may be in a subdirectory)
                 $shpFiles = glob($tmpDir . '/**/*.shp') ?: [];
             }
             if (empty($shpFiles)) return null;

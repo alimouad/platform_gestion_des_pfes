@@ -27,6 +27,125 @@ const mapRef = ref(null)
 let leafletMap = null
 let markers = []
 
+// ── PROJECT DETAIL DRAWER ────────────────────────────────────
+const showDetail = ref(false)
+const detailProjet = ref(null)
+const detailSig = ref([])
+const detailLoading = ref(false)
+
+const showSigMap = ref(false)
+let detailMap = null
+let detailGeoLayers = []
+
+async function openDetail(p) {
+  detailProjet.value = p
+  showDetail.value = true
+  detailLoading.value = true
+  detailSig.value = []
+  try {
+    const res = await api.get(`/sig/projet/${p.id}`)
+    detailSig.value = res.data.data || []
+  } catch {}
+  detailLoading.value = false
+}
+
+function closeDetail() {
+  closeSigMap()
+  showDetail.value = false
+  detailProjet.value = null
+}
+
+async function openSigMap() {
+  showSigMap.value = true
+  await nextTick()
+  initDetailMap()
+  loadDetailSigLayers()
+}
+
+function closeSigMap() {
+  if (detailMap) { detailMap.remove(); detailMap = null }
+  detailGeoLayers = []
+  showSigMap.value = false
+}
+
+function initDetailMap() {
+  const el = document.getElementById('detail-map')
+  if (!el) return
+  if (detailMap) { detailMap.remove(); detailMap = null }
+  detailGeoLayers = []
+
+  const p = detailProjet.value
+  const center = p?.latitude && p?.longitude ? [p.latitude, p.longitude] : [29, -8]
+  detailMap = L.map(el).setView(center, p?.latitude ? 8 : 5)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(detailMap)
+
+  // Zone d'étude rectangle
+  if (p?.zone_etude) {
+    const z = p.zone_etude
+    L.rectangle([[z.south, z.west], [z.north, z.east]], {
+      color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.15, weight: 2, dashArray: '6'
+    }).addTo(detailMap)
+  }
+
+  // Project marker
+  if (p?.latitude && p?.longitude) {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:28px;height:28px;background:#1e4a49;border:3px solid #d6e87a;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25)"><div style="width:8px;height:8px;background:#d6e87a;border-radius:50%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)"></div></div>`,
+      iconSize: [28, 28], iconAnchor: [14, 28],
+    })
+    L.marker([p.latitude, p.longitude], { icon }).addTo(detailMap).bindPopup(p.titre)
+  }
+
+  // SIG layers — loaded after detailSig is populated
+  loadDetailSigLayers()
+}
+
+function loadDetailSigLayers() {
+  if (!detailMap) return
+  detailGeoLayers.forEach(l => detailMap.removeLayer(l))
+  detailGeoLayers = []
+
+  const colors = ['#1e4a49', '#4a5e20', '#2d6a4f', '#386641', '#1b4332']
+  const allLayers = []
+
+  detailSig.value.forEach((sig, i) => {
+    if (!sig.geojson) return
+    const color = colors[i % colors.length]
+    try {
+      const data = typeof sig.geojson === 'string' ? JSON.parse(sig.geojson) : sig.geojson
+      const layer = L.geoJSON(data, {
+        style: { color, weight: 2, fillColor: '#d6e87a', fillOpacity: 0.3 },
+        pointToLayer: (_f, latlng) => L.circleMarker(latlng, { radius: 6, fillColor: '#d6e87a', color, weight: 2, fillOpacity: 0.9 }),
+        onEachFeature: (_f, l) => {
+          if (_f.properties && Object.keys(_f.properties).length) {
+            const rows = Object.entries(_f.properties).filter(([,v]) => v != null).slice(0, 5)
+              .map(([k,v]) => `<tr><td style="padding:1px 6px 1px 0;color:#94a3b8;font-size:11px">${k}</td><td style="font-size:11px;color:#1e293b;font-weight:600">${v}</td></tr>`).join('')
+            l.bindPopup(`<div style="font-family:system-ui"><p style="font-weight:800;font-size:12px;color:#1e293b;margin:0 0 6px">${sig.nom_fichier || 'Couche ' + (i+1)}</p><table>${rows}</table></div>`)
+          }
+        }
+      }).addTo(detailMap)
+      detailGeoLayers.push(layer)
+      allLayers.push(layer)
+    } catch {}
+  })
+
+  if (allLayers.length) {
+    const group = L.featureGroup(allLayers)
+    if (group.getBounds().isValid()) detailMap.fitBounds(group.getBounds(), { padding: [40, 40] })
+  }
+}
+
+const postulationStatutLabel = { en_attente: 'En attente', accepte: 'Accepté', rejete: 'Rejeté' }
+const postulationStatutColor = { en_attente: 'bg-amber-100 text-amber-700', accepte: 'bg-emerald-100 text-emerald-700', rejete: 'bg-red-100 text-red-600' }
+
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+}
+// ─────────────────────────────────────────────────────────────
+
 const showZonePicker = ref(false)
 const zonePickerRef = ref(null)
 let pickerMap = null
@@ -367,7 +486,11 @@ onMounted(fetchAll)
         </div>
 
         <div v-else class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          <article v-for="p in filtered" :key="p.id" class="group relative flex flex-col rounded-[2rem] border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden">
+          <article
+            v-for="p in filtered" :key="p.id"
+            @click="openDetail(p)"
+            class="group relative flex flex-col rounded-[2rem] border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden cursor-pointer"
+          >
             <div class="h-1.5 w-full" :class="statutDot[p.statut] || 'bg-slate-200'"></div>
             <div class="flex flex-1 flex-col p-5">
               <div class="flex items-start justify-between gap-3 mb-4">
@@ -397,8 +520,8 @@ onMounted(fetchAll)
                   </span>
                 </div>
                 <div class="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-                  <button @click="openEdit(p)" class="rounded-xl bg-[#f0f3eb] px-3 py-1.5 text-xs font-bold text-[#4a5e20] hover:bg-[#d6e87a] transition"><i class="fa-solid fa-pen"></i></button>
-                  <button @click="remove(p.id)" class="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-100 transition"><i class="fa-solid fa-trash"></i></button>
+                  <button @click.stop="openEdit(p)" class="rounded-xl bg-[#f0f3eb] px-3 py-1.5 text-xs font-bold text-[#4a5e20] hover:bg-[#d6e87a] transition"><i class="fa-solid fa-pen"></i></button>
+                  <button @click.stop="remove(p.id)" class="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-400 hover:bg-red-100 transition"><i class="fa-solid fa-trash"></i></button>
                 </div>
               </div>
             </div>
@@ -499,6 +622,150 @@ onMounted(fetchAll)
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- PROJECT DETAIL MODAL (centered) -->
+    <Teleport to="body">
+      <div v-if="showDetail" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeDetail"></div>
+        <div class="relative z-10 flex w-full max-w-2xl flex-col bg-white rounded-3xl shadow-2xl overflow-hidden" style="max-height:88vh">
+
+          <!-- Header -->
+          <div class="flex items-center justify-between bg-[#1e4a49] px-6 py-5 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d6e87a]">
+                <i :class="`fa-solid ${domaineIcon(detailProjet?.domaine)} text-[#4a5e20] text-sm`"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="truncate text-sm font-extrabold text-white leading-tight">{{ detailProjet?.titre }}</p>
+                <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold mt-0.5" :class="statutColor[detailProjet?.statut]">
+                  <span class="h-1.5 w-1.5 rounded-full" :class="statutDot[detailProjet?.statut]"></span>
+                  {{ statutLabel[detailProjet?.statut] }}
+                </span>
+              </div>
+            </div>
+            <button @click="closeDetail" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <!-- Scrollable content -->
+          <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+            <!-- Meta -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Domaine</p>
+                <p class="mt-1 text-sm font-bold text-slate-700">{{ detailProjet?.domaine || '—' }}</p>
+              </div>
+              <div class="rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
+                <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Année</p>
+                <p class="mt-1 text-sm font-bold text-slate-700">{{ detailProjet?.anneeUniversitaire?.annee || '—' }}</p>
+              </div>
+              <div v-if="detailProjet?.ville" class="col-span-2 rounded-2xl bg-[#f0f3eb] border border-[#d6e87a]/40 px-4 py-2.5 flex items-center gap-2">
+                <i class="fa-solid fa-location-dot text-[#d6e87a]"></i>
+                <p class="text-sm font-semibold text-[#4a5e20]">{{ detailProjet.ville }}</p>
+              </div>
+            </div>
+
+            <!-- Description -->
+            <div v-if="detailProjet?.description">
+              <p class="mb-2 text-[11px] font-black uppercase tracking-widest text-slate-400">Description</p>
+              <p class="text-sm text-slate-600 leading-relaxed">{{ detailProjet.description }}</p>
+            </div>
+
+            <!-- Postulations -->
+            <div>
+              <p class="mb-3 text-[11px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                <i class="fa-solid fa-users text-[#d6e87a]"></i> Postulations ({{ detailProjet?.postulations?.length || 0 }})
+              </p>
+              <div v-if="!detailProjet?.postulations?.length" class="rounded-2xl border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400">
+                Aucune postulation pour ce projet
+              </div>
+              <div v-else class="space-y-2">
+                <div v-for="post in detailProjet.postulations" :key="post.id"
+                  class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                  <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#d6e87a] text-xs font-black text-[#4a5e20]">
+                    {{ (post.etudiant?.utilisateur?.prenom || '?')[0] }}{{ (post.etudiant?.utilisateur?.nom || '?')[0] }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="truncate text-sm font-bold text-slate-800">{{ post.etudiant?.utilisateur?.prenom }} {{ post.etudiant?.utilisateur?.nom }}</p>
+                    <p class="text-xs text-slate-400">Postulé le {{ formatDate(post.created_at) }}</p>
+                  </div>
+                  <span class="shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold" :class="postulationStatutColor[post.statut] || 'bg-slate-100 text-slate-500'">
+                    {{ postulationStatutLabel[post.statut] || post.statut }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SIG files -->
+            <div>
+              <div class="mb-3 flex items-center justify-between">
+                <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                  <i class="fa-solid fa-map-location-dot text-[#d6e87a]"></i> Fichiers SIG ({{ detailSig.length }})
+                </p>
+                <button v-if="detailSig.length" @click="openSigMap"
+                  class="flex items-center gap-1.5 rounded-xl bg-[#1e4a49] px-3 py-1.5 text-[11px] font-bold text-[#d6e87a] hover:bg-[#163836] transition">
+                  <i class="fa-solid fa-map text-xs"></i> Voir sur la carte
+                </button>
+              </div>
+              <div v-if="detailLoading" class="flex items-center justify-center py-6">
+                <i class="fa-solid fa-circle-notch animate-spin text-[#d6e87a] text-xl"></i>
+              </div>
+              <div v-else-if="!detailSig.length" class="rounded-2xl border border-dashed border-slate-200 py-6 text-center text-xs text-slate-400">
+                Aucun fichier SIG importé par l'étudiant
+              </div>
+              <div v-else class="space-y-2">
+                <div v-for="(sig, i) in detailSig" :key="sig.id"
+                  class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#1e4a49] text-xs font-black text-[#d6e87a]">{{ i + 1 }}</div>
+                  <div class="flex-1 min-w-0">
+                    <p class="truncate text-sm font-semibold text-slate-800">{{ sig.nom_fichier || 'Fichier SIG' }}</p>
+                    <p class="text-xs text-slate-400">{{ sig.type_geometrie }} · {{ formatDate(sig.created_at) }}</p>
+                  </div>
+                  <i class="fa-solid fa-layer-group text-[#d6e87a] text-sm shrink-0"></i>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Footer -->
+          <div class="border-t border-slate-100 px-6 py-4 flex gap-3 bg-white shrink-0">
+            <button @click="closeDetail(); openEdit(detailProjet)" class="flex-1 rounded-2xl border border-slate-200 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-pen text-xs"></i> Modifier
+            </button>
+            <button @click="closeDetail(); remove(detailProjet.id)" class="rounded-2xl border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-400 hover:bg-red-100 transition">
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- SIG MAP MODAL (centered) -->
+    <Teleport to="body">
+      <div v-if="showSigMap" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="closeSigMap"></div>
+        <div class="relative z-10 flex w-full max-w-5xl flex-col rounded-3xl overflow-hidden shadow-2xl" style="height:82vh">
+          <div class="flex items-center justify-between bg-[#1e4a49] px-6 py-4 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#d6e87a]">
+                <i class="fa-solid fa-map text-[#4a5e20] text-sm"></i>
+              </div>
+              <div>
+                <p class="text-sm font-extrabold text-white">{{ detailProjet?.titre }}</p>
+                <p class="text-xs text-white/50">{{ detailSig.length }} couche(s) SIG importée(s)</p>
+              </div>
+            </div>
+            <button @click="closeSigMap" class="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div id="detail-map" class="flex-1"></div>
         </div>
       </div>
     </Teleport>
