@@ -24,7 +24,7 @@ class DepotController extends CrudController
             'projet_id'        => ['required', 'integer', 'exists:projets,id'],
             'etudiant_id'      => ['required', 'integer', 'exists:etudiants,id'],
             'chemin_fichier'   => ['required', 'string', 'max:500'],
-            'type_depot'       => ['required', 'string', 'in:rapport,code,presentation,autre'],
+            'type_depot'       => ['required', 'string', 'in:rapport,donnees,presentation,autre'],
             'statut_validation' => ['sometimes', 'string', 'in:en_attente,valide,rejete'],
             'commentaire'      => ['nullable', 'string'],
         ];

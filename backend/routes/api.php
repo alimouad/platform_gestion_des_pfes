@@ -37,9 +37,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('departements', DepartementController::class);
     });
 
+    // ── Soutenance read for all authenticated users ───────────────────────
+    Route::get('soutenances',           [SoutenanceController::class, 'index']);
+    Route::get('soutenances/{soutenance}', [SoutenanceController::class, 'show']);
+
     // ── Superadmin + Coordinateur ─────────────────────────────────────────
     Route::middleware('role:superadmin,coordinateur')->group(function () {
-        Route::apiResource('soutenances',           SoutenanceController::class);
+        Route::post('soutenances',           [SoutenanceController::class, 'store']);
+        Route::put('soutenances/{soutenance}',    [SoutenanceController::class, 'update']);
+        Route::patch('soutenances/{soutenance}',  [SoutenanceController::class, 'update']);
+        Route::delete('soutenances/{soutenance}', [SoutenanceController::class, 'destroy']);
         Route::apiResource('coordinateurs',         CoordinateurController::class);
 
         Route::get( 'statistiques',                  [StatistiqueController::class, 'index']);
@@ -63,7 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // ── Superadmin + Coordinateur + Professeur ────────────────────────────
     Route::middleware('role:superadmin,coordinateur,professeur')->group(function () {
-        Route::apiResource('professeurs', ProfesseurController::class);
+        Route::get('professeurs/stats', [ProfesseurController::class, 'stats']);
+    Route::apiResource('professeurs', ProfesseurController::class);
         Route::apiResource('etudiants',   EtudiantController::class);
 
         Route::post('depots/{depot}/valider', [DepotController::class, 'valider']);
@@ -71,6 +79,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // ── Projets — lecture ouverte, écriture contrôlée dans le controller ─
+    Route::get('projets/archive', [ProjetController::class, 'archive']);
     Route::apiResource('projets', ProjetController::class);
 
     // ── Postulations ──────────────────────────────────────────────────────

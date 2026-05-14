@@ -15,6 +15,7 @@ const nav = [
   { icon: 'fa-cloud-arrow-up', label: 'Mes dépôts',      to: '/etudiant/depots' },
   { icon: 'fa-map-location-dot', label: 'Données SIG',  to: '/etudiant/sig' },
   { icon: 'fa-graduation-cap', label: 'Ma soutenance',   to: '/etudiant/soutenance' },
+  { icon: 'fa-box-archive',   label: 'Archives PFE',    to: '/etudiant/archive' },
   { icon: 'fa-user',           label: 'Mon profil',      to: '/etudiant/profil' },
 ]
 

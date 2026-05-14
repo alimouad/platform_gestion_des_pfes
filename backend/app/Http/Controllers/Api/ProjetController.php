@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Projet;
+use Illuminate\Http\JsonResponse;
 
 class ProjetController extends CrudController
 {
@@ -14,6 +15,23 @@ class ProjetController extends CrudController
     protected function relations(): array
     {
         return ['professeur.utilisateur', 'coordinateur.utilisateur', 'anneeUniversitaire', 'postulations.etudiant', 'depots', 'soutenance', 'donneeSpatiale'];
+    }
+
+    public function archive(): JsonResponse
+    {
+        $projets = Projet::with([
+            'professeur.utilisateur',
+            'anneeUniversitaire',
+            'postulations.etudiant.utilisateur',
+            'depots',
+            'donneeSpatiale',
+            'soutenance',
+        ])
+        ->where('statut', 'soutenu')
+        ->latest('id')
+        ->get();
+
+        return response()->json(['data' => $projets]);
     }
 
     protected function rules(): array

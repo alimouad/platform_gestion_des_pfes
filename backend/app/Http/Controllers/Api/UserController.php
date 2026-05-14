@@ -70,6 +70,17 @@ class UserController extends CrudController
         return response()->json(['data' => $user->fresh($this->relations())]);
     }
 
+    public function destroy(int $id): JsonResponse
+    {
+        if (request()->user()->id === $id) {
+            return response()->json(['message' => 'Vous ne pouvez pas supprimer votre propre compte.'], 403);
+        }
+
+        $this->query()->findOrFail($id)->delete();
+
+        return new \Illuminate\Http\JsonResponse(null, 204);
+    }
+
     public function me(Request $request): JsonResponse
     {
         return response()->json([

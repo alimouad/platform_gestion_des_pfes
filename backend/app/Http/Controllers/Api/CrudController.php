@@ -67,7 +67,7 @@ abstract class CrudController extends Controller
     {
         $this->query()->findOrFail($id)->delete();
 
-        return response()->noContent();
+        return new \Illuminate\Http\JsonResponse(null, 204);
     }
 
     protected function query()

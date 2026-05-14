@@ -16,7 +16,7 @@ async function fetchAll() {
       api.get('/postulations'),
       api.get('/soutenances'),
     ])
-    postulations.value = po.data.data.filter(p => p.etudiant_id === etudiantId.value)
+    postulations.value = po.data.data.filter(p => Number(p.etudiant_id) === Number(etudiantId.value))
     soutenances.value  = so.data.data
   } catch {}
   loading.value = false
@@ -28,7 +28,7 @@ const monProjet = computed(() => {
 })
 
 const maSoutenance = computed(() =>
-  monProjet.value ? soutenances.value.find(s => s.projet_id === monProjet.value.id) : null
+  monProjet.value ? soutenances.value.find(s => Number(s.projet_id) === Number(monProjet.value.id)) : null
 )
 
 const joursRestants = computed(() => {

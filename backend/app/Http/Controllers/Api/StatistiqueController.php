@@ -22,22 +22,22 @@ class StatistiqueController extends CrudController
     protected function rules(): array
     {
         return [
-            'annees_universitaire_id' => ['required', 'integer', 'exists:annees_universitaires,id'],
+            'annee_universitaire_id' => ['required', 'integer', 'exists:annees_universitaires,id'],
         ];
     }
 
     public function calculer(int $anneeId): JsonResponse
     {
-        $annee = AnneeUniversitaire::findOrFail($anneeId);
+        AnneeUniversitaire::findOrFail($anneeId);
 
-        $projets = Projet::where('annees_universitaire_id', $anneeId)->get();
+        $projets = Projet::where('annee_universitaire_id', $anneeId)->get();
 
         $parDomaine = $projets->groupBy('domaine')
             ->map(fn ($groupe) => $groupe->count())
             ->toArray();
 
         $stats = Statistique::updateOrCreate(
-            ['annees_universitaire_id' => $anneeId],
+            ['annee_universitaire_id' => $anneeId],
             [
                 'total_projets'    => $projets->count(),
                 'projets_valides'  => $projets->where('statut', 'valide')->count(),

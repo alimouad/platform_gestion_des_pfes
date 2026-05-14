@@ -4,6 +4,7 @@ import { useCrud } from '@/composables/useCrud'
 
 const defaultForm = { nom: '', prenom: '', courriel: '', mot_de_passe: '', role: 'etudiant', departement_id: '' }
 const { items, loading, search, filtered, showModal, editing, form, error, fetchAll, save, remove, openCreate, openEdit, closeModal } = useCrud('users', defaultForm)
+const currentUserId = JSON.parse(localStorage.getItem('admin_user') || '{}')?.id
 
 const departements = ref([])
 onMounted(async () => {
@@ -85,9 +86,12 @@ const roleLabel = {
               <button @click="openEdit(u)" class="mr-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 transition">
                 <i class="fa-solid fa-pen"></i>
               </button>
-              <button @click="remove(u.id)" class="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100 transition">
+              <button v-if="u.id !== currentUserId" @click="remove(u.id)" class="rounded-xl bg-red-50 px-3 py-1.5 text-xs font-bold text-red-500 hover:bg-red-100 transition">
                 <i class="fa-solid fa-trash"></i>
               </button>
+              <span v-else class="rounded-xl bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-300 cursor-not-allowed" title="Impossible de supprimer votre propre compte">
+                <i class="fa-solid fa-trash"></i>
+              </span>
             </td>
           </tr>
         </tbody>

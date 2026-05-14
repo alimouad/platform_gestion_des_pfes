@@ -13,6 +13,7 @@ const loading = ref(false)
 const role = ref('etudiant')
 const emailError = ref(false)
 const passwordError = ref(false)
+const loginError = ref('')
 
 function roleBtnClass(name) {
   return [
@@ -29,6 +30,7 @@ function togglePw() { showPassword.value = !showPassword.value }
 async function submit() {
   emailError.value = false
   passwordError.value = false
+  loginError.value = ''
 
   if (!email.value || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
     emailError.value = true
@@ -53,6 +55,8 @@ async function submit() {
         router.push('/admin/dashboard')
       } else if (user?.role === 'coordinateur') {
         router.push('/coordinateur/dashboard')
+      } else if (user?.role === 'professeur') {
+        router.push('/professeur/dashboard')
       } else if (user?.role === 'etudiant') {
         router.push('/etudiant/dashboard')
       } else {
@@ -60,8 +64,7 @@ async function submit() {
       }
     }
   } catch (err) {
-    // Replaced alert with a cleaner console log or you can add a toast notification here
-    console.error(err.response?.data?.message || 'Login failed')
+    loginError.value = err.response?.data?.message || 'Identifiants invalides.'
   } finally {
     loading.value = false
   }
@@ -144,6 +147,10 @@ async function submit() {
             </label>
             <router-link to="/forgot" class="text-sm font-black text-[#1e4a49] hover:underline decoration-[#D4E98D] decoration-2 underline-offset-4 transition-all">Forgot secret?</router-link>
           </div>
+
+          <Transition name="slide-fade">
+            <p v-if="loginError" class="rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-bold text-red-500 text-center">{{ loginError }}</p>
+          </Transition>
 
           <button :disabled="loading" type="submit" 
             class="group relative w-full bg-gray-900 text-white rounded-[1.25rem] py-4.5 font-black text-sm tracking-widest uppercase overflow-hidden shadow-2xl transition-all hover:-translate-y-1 hover:shadow-[#D4E98D]/20 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed">
