@@ -45,6 +45,7 @@ const router = createRouter({
                 { path: 'soutenances',  name: 'coordinateur.soutenances',  component: () => import('@/views/coordinateur/Soutenances.vue') },
                 { path: 'etudiants',    name: 'coordinateur.etudiants',    component: () => import('@/views/coordinateur/Etudiants.vue') },
                 { path: 'statistiques', name: 'coordinateur.statistiques', component: () => import('@/views/coordinateur/Statistiques.vue') },
+                { path: 'carte-sig',    name: 'coordinateur.carte-sig',    component: () => import('@/views/coordinateur/CarteSIG.vue') },
             ],
         },
         {
@@ -74,6 +75,8 @@ const router = createRouter({
                 { path: 'postulations', name: 'professeur.postulations', component: () => import('@/views/professeur/Postulations.vue') },
                 { path: 'depots',       name: 'professeur.depots',       component: () => import('@/views/professeur/Depots.vue') },
                 { path: 'etudiants',    name: 'professeur.etudiants',    component: () => import('@/views/professeur/Etudiants.vue') },
+                { path: 'avancement',   name: 'professeur.avancement',   component: () => import('@/views/professeur/Avancement.vue') },
+                { path: 'carte-sig',    name: 'professeur.carte-sig',    component: () => import('@/views/professeur/CarteSIG.vue') },
                 { path: 'profil',       name: 'professeur.profil',       component: () => import('@/views/professeur/Profil.vue') },
             ],
         },

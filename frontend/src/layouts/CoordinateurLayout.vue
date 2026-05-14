@@ -16,6 +16,7 @@ const nav = [
   { icon: 'fa-person-chalkboard', label: 'Soutenances',  to: '/coordinateur/soutenances' },
   { icon: 'fa-user-graduate',     label: 'Étudiants',    to: '/coordinateur/etudiants' },
   { icon: 'fa-chart-pie',         label: 'Statistiques', to: '/coordinateur/statistiques' },
+  { icon: 'fa-map-location-dot', label: 'Carte SIG',   to: '/coordinateur/carte-sig' },
 ]
 
 const isActive = (to) => route.path.startsWith(to)

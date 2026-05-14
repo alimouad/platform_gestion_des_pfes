@@ -8,11 +8,16 @@ const stats = ref(null)
 const loading = ref(false)
 const calculating = ref(false)
 const error = ref('')
+const projets = ref([])
 
 onMounted(async () => {
   try {
-    const res = await api.get('/annees-universitaires')
-    annees.value = res.data.data
+    const [anneesRes, projetsRes] = await Promise.all([
+      api.get('/annees-universitaires'),
+      api.get('/projets'),
+    ])
+    annees.value = anneesRes.data.data
+    projets.value = projetsRes.data.data || []
     const active = annees.value.find(a => a.statut === 'active')
     if (active) {
       selectedAnnee.value = active.id
@@ -68,6 +73,14 @@ const conicGradient = computed(() => {
     return segment
   })
   return `conic-gradient(${parts.join(', ')})`
+})
+
+const villeData = computed(() => {
+  const counts = {}
+  projets.value.forEach(p => { if (p.ville) counts[p.ville] = (counts[p.ville] || 0) + 1 })
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 10)
+  const max = entries[0]?.[1] || 1
+  return entries.map(([ville, count]) => ({ ville, count, pct: Math.round((count / max) * 100) }))
 })
 
 const statCards = computed(() => {
@@ -184,6 +197,30 @@ const statCards = computed(() => {
             class="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
             <p class="text-xs font-semibold text-slate-500">{{ region }}</p>
             <p class="text-2xl font-extrabold text-slate-900">{{ count }}</p>
+          </div>
+        </div>
+      </article>
+
+      <!-- SIG: Spatial stats by city -->
+      <article v-if="villeData.length" class="rounded-[2rem] border border-white/70 bg-white/90 p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1e4a49]">
+            <i class="fa-solid fa-map-location-dot text-[#d6e87a] text-sm"></i>
+          </div>
+          <div>
+            <p class="text-base font-extrabold">Statistiques spatiales</p>
+            <p class="text-xs text-slate-400">Projets par ville (top {{ villeData.length }})</p>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div v-for="(item, i) in villeData" :key="item.ville" class="flex items-center gap-3">
+            <span class="w-5 text-center text-[11px] font-black text-slate-400">{{ i + 1 }}</span>
+            <span class="w-28 shrink-0 truncate text-xs font-semibold text-slate-700">{{ item.ville }}</span>
+            <div class="flex-1 rounded-full bg-slate-100 h-2.5 overflow-hidden">
+              <div class="h-full rounded-full bg-[#d6e87a] transition-all duration-700"
+                :style="{ width: `${item.pct}%` }"></div>
+            </div>
+            <span class="w-6 text-right text-xs font-bold text-slate-700 shrink-0">{{ item.count }}</span>
           </div>
         </div>
       </article>

@@ -14,6 +14,8 @@ const nav = [
   { icon: 'fa-file-signature',  label: 'Postulations',  to: '/professeur/postulations' },
   { icon: 'fa-cloud-arrow-up',  label: 'Dépôts',        to: '/professeur/depots' },
   { icon: 'fa-user-graduate',   label: 'Mes étudiants', to: '/professeur/etudiants' },
+  { icon: 'fa-chart-line',      label: 'Avancement',    to: '/professeur/avancement' },
+  { icon: 'fa-map-location-dot', label: 'Carte SIG',   to: '/professeur/carte-sig' },
   { icon: 'fa-user',            label: 'Profil',        to: '/professeur/profil' },
 ]
 

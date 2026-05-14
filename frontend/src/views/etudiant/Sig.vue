@@ -3,6 +3,8 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import api from '@/services/api'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet-draw/dist/leaflet.draw.css'
+import 'leaflet-draw'
 
 const user = ref(JSON.parse(localStorage.getItem('admin_user') || '{}'))
 const etudiantId = computed(() => user.value?.etudiant?.id)
@@ -19,6 +21,12 @@ const fileInput = ref(null)
 
 let map = null
 let geoLayers = []
+let drawLayer = null
+let drawControl = null
+
+const savingZone = ref(false)
+const zoneSuccess = ref('')
+const drawnZone = ref(null)  // GeoJSON of drawn zone
 
 const monProjet = computed(() => {
   const accepted = postulations.value.find(p => p.statut === 'accepte')
@@ -54,6 +62,42 @@ function initMap() {
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
   }).addTo(map)
+
+  // Draw control for zone definition
+  drawLayer = new L.FeatureGroup().addTo(map)
+
+  // Show existing zone if any
+  if (monProjet.value?.zone_etude) {
+    try {
+      const z = monProjet.value.zone_etude
+      const geo = typeof z === 'string' ? JSON.parse(z) : z
+      if (geo?.type) {
+        L.geoJSON(geo, { style: { color: '#1e4a49', weight: 2, fillColor: '#d6e87a', fillOpacity: 0.2 } }).addTo(drawLayer)
+        drawnZone.value = geo
+      } else if (geo?.south !== undefined) {
+        const b = [[geo.south, geo.west],[geo.north, geo.east]]
+        L.rectangle(b, { color: '#1e4a49', weight: 2, fillColor: '#d6e87a', fillOpacity: 0.2 }).addTo(drawLayer)
+        map.fitBounds(b)
+      }
+    } catch {}
+  }
+
+  drawControl = new L.Control.Draw({
+    draw: {
+      polygon: { shapeOptions: { color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.2, weight: 2 } },
+      rectangle: { shapeOptions: { color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.2, weight: 2 } },
+      polyline: false, circle: false, circlemarker: false, marker: false,
+    },
+    edit: { featureGroup: drawLayer },
+  })
+  map.addControl(drawControl)
+
+  map.on(L.Draw.Event.CREATED, e => {
+    drawLayer.clearLayers()
+    drawLayer.addLayer(e.layer)
+    drawnZone.value = e.layer.toGeoJSON()
+    zoneSuccess.value = ''
+  })
 
   if (importedFiles.value.length) {
     loadAllOnMap()
@@ -137,6 +181,19 @@ async function upload() {
     error.value = e.response?.data?.message || 'Erreur lors de l\'import.'
   }
   uploading.value = false
+}
+
+async function saveZone() {
+  if (!drawnZone.value || !monProjet.value) return
+  savingZone.value = true
+  zoneSuccess.value = ''
+  try {
+    await api.put(`/projets/${monProjet.value.id}`, { zone_etude: drawnZone.value })
+    zoneSuccess.value = 'Zone d\'étude enregistrée !'
+  } catch (e) {
+    error.value = e.response?.data?.message || 'Erreur lors de la sauvegarde.'
+  }
+  savingZone.value = false
 }
 
 function formatDate(d) {
@@ -236,6 +293,27 @@ function formatDate(d) {
               <i v-if="uploading" class="fa-solid fa-circle-notch animate-spin"></i>
               <i v-else class="fa-solid fa-upload"></i>
               {{ uploading ? 'Import en cours…' : 'Importer les données' }}
+            </button>
+          </div>
+
+          <!-- Draw zone card -->
+          <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="mb-1 text-sm font-extrabold uppercase tracking-widest text-slate-500">Zone d'étude</h2>
+            <p class="text-xs text-slate-400 mb-4">Dessinez votre zone sur la carte (polygone ou rectangle) puis enregistrez.</p>
+            <div v-if="zoneSuccess" class="mb-3 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
+              <i class="fa-solid fa-circle-check"></i> {{ zoneSuccess }}
+            </div>
+            <div class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 mb-3">
+              <i class="fa-solid fa-draw-polygon text-[#4a7a30]"></i>
+              <span class="text-xs text-slate-600 font-semibold">
+                {{ drawnZone ? 'Zone dessinée — prête à enregistrer' : monProjet?.zone_etude ? 'Zone existante affichée sur la carte' : 'Aucune zone définie — dessinez sur la carte' }}
+              </span>
+            </div>
+            <button @click="saveZone" :disabled="!drawnZone || savingZone"
+              class="w-full rounded-2xl bg-[#1e4a49] py-3 text-sm font-bold text-white transition hover:bg-[#163635] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+              <i v-if="savingZone" class="fa-solid fa-circle-notch animate-spin"></i>
+              <i v-else class="fa-solid fa-floppy-disk"></i>
+              {{ savingZone ? 'Enregistrement…' : 'Enregistrer la zone' }}
             </button>
           </div>
 
