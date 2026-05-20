@@ -27,7 +27,10 @@ class ProjetController extends CrudController
             'donneeSpatiale',
             'soutenance',
         ])
-        ->where('statut', 'soutenu')
+        ->where(function ($q) {
+            $q->where('statut', 'soutenu')
+              ->orWhereHas('soutenance', fn($s) => $s->where('statut', 'terminee'));
+        })
         ->latest('id')
         ->get();
 

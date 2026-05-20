@@ -53,6 +53,21 @@ const displayList = computed(() => {
 
 function openDetail(s) { selected.value = s }
 function closeDetail()  { selected.value = null }
+
+async function marquerTerminee(s, e) {
+  e.stopPropagation()
+  try {
+    await api.put(`/soutenances/${s.id}`, {
+      statut: 'terminee',
+      projet_id: s.projet_id ?? s.projet?.id,
+      date: s.date,
+      heure: s.heure?.slice(0, 5),
+      salle: s.salle,
+    })
+    await fetchAll()
+    if (selected.value?.id === s.id) selected.value = { ...selected.value, statut: 'terminee' }
+  } catch (err) { alert(err.response?.data?.message || 'Erreur') }
+}
 </script>
 
 <template>
@@ -142,6 +157,11 @@ function closeDetail()  { selected.value = null }
                 {{ sc(s.statut).label }}
               </span>
               <div class="flex gap-1.5" @click.stop>
+                <button v-if="s.statut !== 'terminee'" @click="marquerTerminee(s, $event)"
+                  title="Marquer comme terminée"
+                  class="flex h-7 items-center gap-1 rounded-xl bg-green-50 px-2 text-[10px] font-bold text-green-700 hover:bg-green-100 transition">
+                  <i class="fa-solid fa-check text-[10px]"></i> Terminée
+                </button>
                 <button @click="openEdit(s)" class="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition">
                   <i class="fa-solid fa-pen text-[10px]"></i>
                 </button>
@@ -223,6 +243,10 @@ function closeDetail()  { selected.value = null }
                 {{ sc(selected.statut).label }}
               </span>
               <div class="flex gap-2">
+                <button v-if="selected.statut !== 'terminee'" @click="marquerTerminee(selected, $event)"
+                  class="flex items-center gap-2 rounded-xl bg-green-50 border border-green-100 px-3 py-1.5 text-xs font-bold text-green-700 hover:bg-green-100 transition">
+                  <i class="fa-solid fa-graduation-cap text-[10px]"></i> Marquer terminée
+                </button>
                 <button @click="openEdit(selected); closeDetail()"
                   class="flex items-center gap-2 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-200 transition">
                   <i class="fa-solid fa-pen text-[10px]"></i> Modifier

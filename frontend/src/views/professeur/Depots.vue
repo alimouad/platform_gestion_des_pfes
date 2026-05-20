@@ -149,11 +149,11 @@ onMounted(fetchAll)
         class="group cursor-pointer flex flex-col rounded-3xl border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden"
       >
         <!-- Top accent with completion bar -->
-        <div class="h-1.5 w-full bg-slate-100 relative">
+        <div class="h-1.5 w-full bg-slate-100 relative shrink-0">
           <div class="absolute inset-y-0 left-0 bg-[#d6e87a] transition-all duration-500" :style="`width:${completionOf(g.depots)}%`"></div>
         </div>
 
-        <div class="p-5 flex flex-col gap-4">
+        <div class="p-8 flex flex-col gap-4">
           <!-- Student info -->
           <div class="flex items-center gap-3">
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d6e87a] text-sm font-black text-[#4a5e20]">

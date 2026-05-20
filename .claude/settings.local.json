@@ -24,7 +24,9 @@
       "Bash(sed -i 's/hover:border-blue-[0-9]*/hover:border-[#d6e87a]/g' *.vue)",
       "Bash(php artisan *)",
       "Bash(docker exec *)",
-      "Bash(xargs cat)"
+      "Bash(xargs cat)",
+      "Bash(python3 -c \"import docx\")",
+      "Read(//usr/bin/**)"
     ]
   }
 }
