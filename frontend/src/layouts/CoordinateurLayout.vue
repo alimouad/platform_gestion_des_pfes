@@ -17,6 +17,7 @@ const nav = [
   { icon: 'fa-user-graduate',     label: 'Étudiants',    to: '/coordinateur/etudiants' },
   { icon: 'fa-chart-pie',         label: 'Statistiques', to: '/coordinateur/statistiques' },
   { icon: 'fa-map-location-dot', label: 'Carte SIG',   to: '/coordinateur/carte-sig' },
+  { icon: 'fa-circle-user',      label: 'Profil',       to: '/coordinateur/profil' },
 ]
 
 const isActive = (to) => route.path.startsWith(to)

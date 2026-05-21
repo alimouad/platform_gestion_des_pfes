@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Soutenance;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class SoutenanceController extends CrudController
@@ -17,6 +18,20 @@ class SoutenanceController extends CrudController
     protected function relations(): array
     {
         return ['projet.professeur.utilisateur', 'projet.postulations.etudiant'];
+    }
+
+    public function index(): JsonResponse
+    {
+        $query = Soutenance::with($this->relations())->latest('id');
+
+        $user = Auth::user();
+        if ($user && $user->role === 'coordinateur' && $user->departement_id) {
+            $query->whereHas('projet.professeur.utilisateur', fn($q) =>
+                $q->where('departement_id', $user->departement_id)
+            );
+        }
+
+        return response()->json(['data' => $query->get()]);
     }
 
     protected function rules(): array

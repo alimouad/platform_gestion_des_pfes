@@ -69,34 +69,49 @@ function closeDetail() {
 async function openSigMap() {
   showSigMap.value = true
   await nextTick()
+  // give the DOM time to fully render the modal before Leaflet measures the container
+  await new Promise(r => setTimeout(r, 80))
   if (sigMap) { sigMap.remove(); sigMap = null }
   const el = document.getElementById('archive-sig-map')
   if (!el) return
 
   const p = selected.value
-  const center = p?.latitude && p?.longitude ? [p.latitude, p.longitude] : [29, -8]
-  sigMap = L.map(el).setView(center, p?.latitude ? 7 : 5)
+  const center = p?.latitude && p?.longitude ? [Number(p.latitude), Number(p.longitude)] : [29, -8]
+  sigMap = L.map(el, { preferCanvas: true }).setView(center, p?.latitude ? 7 : 5)
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 18,
   }).addTo(sigMap)
 
+  const allLayers = []
+
+  // zone_etude — supports both rectangle {south,west,north,east} and GeoJSON polygon
   if (p?.zone_etude) {
-    const z = p.zone_etude
-    L.rectangle([[z.south, z.west], [z.north, z.east]], {
-      color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.15, weight: 2, dashArray: '6'
-    }).addTo(sigMap)
+    try {
+      const z = typeof p.zone_etude === 'string' ? JSON.parse(p.zone_etude) : p.zone_etude
+      if (z?.south !== undefined) {
+        const rl = L.rectangle([[z.south, z.west], [z.north, z.east]], {
+          color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.15, weight: 2, dashArray: '6'
+        }).addTo(sigMap)
+        allLayers.push(rl)
+      } else if (z?.type) {
+        const gl = L.geoJSON(z, {
+          style: { color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.15, weight: 2, dashArray: '6' }
+        }).addTo(sigMap)
+        allLayers.push(gl)
+      }
+    } catch {}
   }
 
   const colors = ['#1e4a49', '#4a5e20', '#2d6a4f', '#386641']
-  const layers = []
   selectedSig.value.forEach((sig, i) => {
     if (!sig.geojson) return
     const color = colors[i % colors.length]
     try {
       const data = typeof sig.geojson === 'string' ? JSON.parse(sig.geojson) : sig.geojson
       const layer = L.geoJSON(data, {
-        style: { color, weight: 2, fillColor: '#d6e87a', fillOpacity: 0.3 },
-        pointToLayer: (_f, latlng) => L.circleMarker(latlng, { radius: 6, fillColor: '#d6e87a', color, weight: 2, fillOpacity: 0.9 }),
+        style: { color, weight: 2, fillColor: color, fillOpacity: 0.3 },
+        pointToLayer: (_f, latlng) => L.circleMarker(latlng, { radius: 6, fillColor: color, color: '#fff', weight: 1.5, fillOpacity: 0.9 }),
         onEachFeature: (_f, l) => {
           if (_f.properties && Object.keys(_f.properties).length) {
             const rows = Object.entries(_f.properties).filter(([, v]) => v != null).slice(0, 5)
@@ -105,14 +120,21 @@ async function openSigMap() {
           }
         }
       }).addTo(sigMap)
-      layers.push(layer)
+      allLayers.push(layer)
     } catch {}
   })
 
-  if (layers.length) {
-    const group = L.featureGroup(layers)
-    if (group.getBounds().isValid()) sigMap.fitBounds(group.getBounds(), { padding: [40, 40] })
+  // fit bounds to all layers, fallback to project coordinates
+  if (allLayers.length) {
+    try {
+      const group = L.featureGroup(allLayers)
+      if (group.getBounds().isValid()) {
+        sigMap.fitBounds(group.getBounds(), { padding: [40, 40] })
+        return
+      }
+    } catch {}
   }
+  if (p?.latitude && p?.longitude) sigMap.setView([Number(p.latitude), Number(p.longitude)], 9)
 }
 
 function closeSigMap() {

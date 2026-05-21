@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Projet;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ProjetController extends CrudController
 {
@@ -15,6 +17,20 @@ class ProjetController extends CrudController
     protected function relations(): array
     {
         return ['professeur.utilisateur', 'coordinateur.utilisateur', 'anneeUniversitaire', 'postulations.etudiant', 'depots', 'soutenance', 'donneeSpatiale'];
+    }
+
+    public function index(): JsonResponse
+    {
+        $query = Projet::with($this->relations())->latest('id');
+
+        $user = Auth::user();
+        if ($user && $user->departement_id && in_array($user->role, ['coordinateur', 'etudiant'])) {
+            $query->whereHas('professeur.utilisateur', fn($q) =>
+                $q->where('departement_id', $user->departement_id)
+            );
+        }
+
+        return response()->json(['data' => $query->get()]);
     }
 
     public function archive(): JsonResponse
@@ -35,6 +51,22 @@ class ProjetController extends CrudController
         ->get();
 
         return response()->json(['data' => $projets]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        $data = $request->all();
+        $prof = \App\Models\Professeur::where('user_id', $user->id)->first();
+        if ($user->role === 'professeur' && $prof) {
+            $data['professeur_id'] = $prof->id;
+        }
+
+        $validated = validator($data, $this->rules())->validate();
+        $projet = Projet::create($validated);
+
+        return response()->json(['data' => $projet->fresh($this->relations())], 201);
     }
 
     protected function rules(): array

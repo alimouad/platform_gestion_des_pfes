@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Depot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DepotController extends CrudController
 {
@@ -16,6 +17,20 @@ class DepotController extends CrudController
     protected function relations(): array
     {
         return ['projet', 'etudiant.utilisateur'];
+    }
+
+    public function index(): JsonResponse
+    {
+        $query = Depot::with($this->relations())->latest('id');
+
+        $user = Auth::user();
+        if ($user && $user->role === 'coordinateur' && $user->departement_id) {
+            $query->whereHas('projet.professeur.utilisateur', fn($q) =>
+                $q->where('departement_id', $user->departement_id)
+            );
+        }
+
+        return response()->json(['data' => $query->get()]);
     }
 
     protected function rules(): array

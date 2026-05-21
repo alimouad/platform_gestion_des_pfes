@@ -5,14 +5,22 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-draw/dist/leaflet.draw.css'
 import 'leaflet-draw'
+import 'leaflet.markercluster/dist/MarkerCluster.css'
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import 'leaflet.markercluster'
 
 const projets    = ref([])
 const loading    = ref(false)
 const filterRect = ref(null)  // [[s,w],[n,e]] or null
 const search     = ref('')
 
+// Geocoding
+const geocodeSearch  = ref('')
+const geocodeResults = ref([])
+const geocoding      = ref(false)
+
 let map = null
-let markerLayer  = L.layerGroup()
+let clusterGroup = null
 let heatLayer    = null
 let drawLayer    = L.layerGroup()
 let drawControl  = null
@@ -78,7 +86,19 @@ function initMap() {
     maxZoom: 18,
   }).addTo(map)
 
-  markerLayer.addTo(map)
+  clusterGroup = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 50,
+    iconCreateFunction(cluster) {
+      const n = cluster.getChildCount()
+      return L.divIcon({
+        html: `<div style="background:#1e4a49;color:#d6e87a;border:2.5px solid #d6e87a;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.25)">${n}</div>`,
+        className: '',
+        iconSize: [36, 36],
+      })
+    },
+  })
+  map.addLayer(clusterGroup)
   drawLayer.addTo(map)
 
   // Draw control (rectangle only)
@@ -110,7 +130,7 @@ function initMap() {
 }
 
 function renderMarkers() {
-  markerLayer.clearLayers()
+  clusterGroup.clearLayers()
   filteredProjets.value.forEach(p => {
     if (!p.latitude || !p.longitude) return
     const color = STATUT_COLOR[p.statut] || '#94a3b8'
@@ -120,9 +140,10 @@ function renderMarkers() {
       color: '#fff',
       weight: 2,
       fillOpacity: 0.85,
-    }).addTo(markerLayer)
+    })
     m.bindTooltip(`<b>${p.titre}</b><br>${p.ville || ''} · ${statutLabel[p.statut] || p.statut}`, { direction: 'top' })
     m.on('click', () => { selected.value = p })
+    clusterGroup.addLayer(m)
   })
 }
 
@@ -157,9 +178,58 @@ function clearRect() {
   renderMarkers()
 }
 
-// Watch filter changes and re-render markers
-function onFilterChange() {
-  renderMarkers()
+function onFilterChange() { renderMarkers() }
+
+// ── Géocodage Nominatim ─────────────────────────────────────
+let geocodeTimer = null
+async function onGeocodeInput() {
+  clearTimeout(geocodeTimer)
+  geocodeResults.value = []
+  if (geocodeSearch.value.length < 3) return
+  geocodeTimer = setTimeout(async () => {
+    geocoding.value = true
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(geocodeSearch.value)}&limit=5&accept-language=fr`)
+      geocodeResults.value = await res.json()
+    } catch {}
+    geocoding.value = false
+  }, 400)
+}
+function selectGeocode(r) {
+  geocodeResults.value = []
+  geocodeSearch.value = r.display_name.split(',')[0]
+  if (map) map.flyTo([Number(r.lat), Number(r.lon)], 10, { duration: 1.2 })
+}
+
+// ── Export GeoJSON ─────────────────────────────────────────
+function exportGeoJSON() {
+  const features = filteredProjets.value.flatMap(p => {
+    const feats = []
+    if (p.latitude && p.longitude) {
+      feats.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [Number(p.longitude), Number(p.latitude)] },
+        properties: { id: p.id, titre: p.titre, statut: p.statut, ville: p.ville, domaine: p.domaine },
+      })
+    }
+    if (p.zone_etude) {
+      try {
+        const z = typeof p.zone_etude === 'string' ? JSON.parse(p.zone_etude) : p.zone_etude
+        const geo = z.type ? z : {
+          type: 'Polygon',
+          coordinates: [[[z.west,z.south],[z.east,z.south],[z.east,z.north],[z.west,z.north],[z.west,z.south]]],
+        }
+        feats.push({ type: 'Feature', geometry: geo, properties: { id: p.id, titre: p.titre, type: 'zone' } })
+      } catch {}
+    }
+    return feats
+  })
+  const blob = new Blob([JSON.stringify({ type: 'FeatureCollection', features }, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = 'projets-sig.geojson'
+  a.click()
+  URL.revokeObjectURL(a.href)
 }
 </script>
 
@@ -170,10 +240,16 @@ function onFilterChange() {
     <div class="rounded-3xl bg-[#1e4a49] px-8 py-6 text-white relative overflow-hidden">
       <div class="absolute -right-8 -top-8 h-40 w-40 rounded-full bg-white/5"></div>
       <div class="absolute -bottom-6 right-24 h-24 w-24 rounded-full bg-[#d6e87a]/10"></div>
-      <div class="relative">
-        <p class="text-[11px] font-black uppercase tracking-widest text-[#d6e87a]">SIG · Cartographie</p>
-        <h1 class="mt-1 text-2xl font-black">Carte des projets</h1>
-        <p class="mt-1 text-sm text-white/60">{{ filteredProjets.length }} / {{ projets.length }} projets affichés</p>
+      <div class="relative flex items-center justify-between">
+        <div>
+          <p class="text-[11px] font-black uppercase tracking-widest text-[#d6e87a]">SIG · Cartographie</p>
+          <h1 class="mt-1 text-2xl font-black">Carte des projets</h1>
+          <p class="mt-1 text-sm text-white/60">{{ filteredProjets.length }} / {{ projets.length }} projets affichés</p>
+        </div>
+        <button @click="exportGeoJSON"
+          class="flex items-center gap-2 rounded-2xl bg-[#d6e87a] px-4 py-2.5 text-sm font-black text-[#1e4a49] hover:bg-[#c8db60] transition shadow-lg">
+          <i class="fa-solid fa-download text-sm"></i> Export GeoJSON
+        </button>
       </div>
     </div>
 
@@ -201,6 +277,24 @@ function onFilterChange() {
 
       <!-- Sidebar -->
       <div class="space-y-4">
+
+        <!-- Geocode search -->
+        <div class="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
+          <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-3">Recherche de lieu</p>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input v-model="geocodeSearch" @input="onGeocodeInput" placeholder="Ville, région…"
+              class="w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm outline-none focus:border-[#d6e87a] transition" />
+            <i v-if="geocoding" class="fa-solid fa-circle-notch fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          </div>
+          <div v-if="geocodeResults.length" class="mt-2 rounded-xl border border-slate-100 bg-white shadow-lg overflow-hidden">
+            <button v-for="r in geocodeResults" :key="r.place_id" @click="selectGeocode(r)"
+              class="w-full px-3 py-2 text-left text-xs text-slate-700 hover:bg-[#f8faef] border-b border-slate-50 last:border-0 truncate">
+              <i class="fa-solid fa-location-dot text-slate-400 mr-2"></i>{{ r.display_name }}
+            </button>
+          </div>
+        </div>
+
         <!-- Legend -->
         <div class="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
           <p class="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-3">Légende</p>

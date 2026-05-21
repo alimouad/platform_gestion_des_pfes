@@ -157,7 +157,7 @@ let isDrawing = false
 const defaultForm = () => ({
   titre: '', description: '', domaine: '',
   statut: 'soumis',
-  professeur_id: profId.value,
+  professeur_id: profId.value ?? user.value?.professeur?.id,
   annee_universitaire_id: '',
   ville: '', latitude: '', longitude: '',
   zone_etude: null,
@@ -191,8 +191,9 @@ const filtered = computed(() => {
 
 const mappableProjects = computed(() => filtered.value.filter(p => p.latitude && p.longitude))
 
-function openCreate() {
+async function openCreate() {
   editing.value = null
+  if (!profId.value) await fetchAll()
   form.value = defaultForm()
   error.value = ''
   showModal.value = true
@@ -214,7 +215,7 @@ function openEdit(p) {
 async function save() {
   error.value = ''
   try {
-    const payload = { ...form.value }
+    const payload = { ...form.value, professeur_id: profId.value }
     if (payload.latitude === '') payload.latitude = null
     if (payload.longitude === '') payload.longitude = null
     if (editing.value) {
@@ -386,6 +387,30 @@ function closeZonePicker() {
   showZonePicker.value = false
   drawStart = null
   isDrawing = false
+}
+
+// ── Géocodage Nominatim ─────────────────────────────────────
+const villeGeoResults = ref([])
+const villeGeocoding  = ref(false)
+let villeTimer = null
+async function onVilleInput() {
+  clearTimeout(villeTimer)
+  villeGeoResults.value = []
+  if (!form.value.ville || form.value.ville.length < 3) return
+  villeTimer = setTimeout(async () => {
+    villeGeocoding.value = true
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(form.value.ville)}&limit=4&accept-language=fr`)
+      villeGeoResults.value = await res.json()
+    } catch {}
+    villeGeocoding.value = false
+  }, 400)
+}
+function selectVille(r) {
+  form.value.ville      = r.display_name.split(',')[0]
+  form.value.latitude   = parseFloat(Number(r.lat).toFixed(6))
+  form.value.longitude  = parseFloat(Number(r.lon).toFixed(6))
+  villeGeoResults.value = []
 }
 
 const statutLabel = { brouillon: 'Brouillon', soumis: 'Soumis', en_cours: 'En cours', valide: 'Validé', soutenu: 'Soutenu', rejete: 'Rejeté' }
@@ -600,9 +625,23 @@ onMounted(fetchAll)
                 <span class="text-xs font-semibold text-[#4a5e20]">Zone définie · cliquez "Dessiner" pour modifier</span>
               </div>
 
-              <div>
+              <div class="relative">
                 <label class="mb-1.5 block text-xs font-bold text-slate-600">Ville / Région</label>
-                <input v-model="form.ville" placeholder="ex: Alger, Oran…" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition" />
+                <div class="relative">
+                  <input v-model="form.ville" @input="onVilleInput" placeholder="ex: Casablanca, Agadir…"
+                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 pr-9 text-sm outline-none focus:border-[#d6e87a] transition" />
+                  <i v-if="villeGeocoding" class="fa-solid fa-circle-notch fa-spin absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                  <i v-else class="fa-solid fa-location-dot absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                </div>
+                <div v-if="villeGeoResults.length" class="absolute z-50 mt-1 w-full rounded-xl border border-slate-100 bg-white shadow-xl overflow-hidden">
+                  <button v-for="r in villeGeoResults" :key="r.place_id" type="button" @click="selectVille(r)"
+                    class="w-full px-3 py-2 text-left text-xs text-slate-700 hover:bg-[#f8faef] border-b border-slate-50 last:border-0 truncate">
+                    <i class="fa-solid fa-location-dot text-slate-400 mr-2"></i>{{ r.display_name }}
+                  </button>
+                </div>
+                <p v-if="form.latitude && form.longitude" class="mt-1 text-[10px] text-[#4a7a30] font-semibold">
+                  <i class="fa-solid fa-check mr-1"></i>{{ form.latitude }}, {{ form.longitude }}
+                </p>
               </div>
               <div class="grid grid-cols-2 gap-3">
                 <div>

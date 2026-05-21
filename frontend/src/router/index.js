@@ -46,6 +46,7 @@ const router = createRouter({
                 { path: 'etudiants',    name: 'coordinateur.etudiants',    component: () => import('@/views/coordinateur/Etudiants.vue') },
                 { path: 'statistiques', name: 'coordinateur.statistiques', component: () => import('@/views/coordinateur/Statistiques.vue') },
                 { path: 'carte-sig',    name: 'coordinateur.carte-sig',    component: () => import('@/views/coordinateur/CarteSIG.vue') },
+                { path: 'profil',       name: 'coordinateur.profil',       component: () => import('@/views/coordinateur/Profil.vue') },
             ],
         },
         {

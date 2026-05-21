@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Etudiant;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class EtudiantController extends CrudController
 {
@@ -14,6 +16,20 @@ class EtudiantController extends CrudController
     protected function relations(): array
     {
         return ['utilisateur', 'postulations.projet', 'depots'];
+    }
+
+    public function index(): JsonResponse
+    {
+        $query = Etudiant::with($this->relations())->latest('id');
+
+        $user = Auth::user();
+        if ($user && $user->role === 'coordinateur' && $user->departement_id) {
+            $query->whereHas('utilisateur', fn($q) =>
+                $q->where('departement_id', $user->departement_id)
+            );
+        }
+
+        return response()->json(['data' => $query->get()]);
     }
 
     protected function rules(): array
