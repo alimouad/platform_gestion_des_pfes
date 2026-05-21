@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ProfesseurController;
 use App\Http\Controllers\Api\ProjetController;
 use App\Http\Controllers\Api\SoutenanceController;
 use App\Http\Controllers\Api\StatistiqueController;
+use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -97,4 +98,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('couches-cartes',    CoucheCarteController::class);
     Route::post('sig/upload',              [FichierSigController::class, 'upload']);
     Route::get('sig/projet/{projetId}',    [FichierSigController::class, 'show']);
+
+    // ── Messages ──────────────────────────────────────────────────────────
+    Route::get('messages/contacts',        [MessageController::class, 'contacts']);
+    Route::get('messages/{userId}',        [MessageController::class, 'conversation']);
+    Route::post('messages',                [MessageController::class, 'store']);
 });

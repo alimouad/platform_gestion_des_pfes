@@ -63,6 +63,7 @@ const router = createRouter({
                 { path: 'archive',      name: 'etudiant.archive',      component: () => import('@/views/etudiant/Archive.vue') },
                 { path: 'soutenance',   name: 'etudiant.soutenance',   component: () => import('@/views/etudiant/Soutenance.vue') },
                 { path: 'profil',       name: 'etudiant.profil',       component: () => import('@/views/etudiant/Profil.vue') },
+                { path: 'messages',     name: 'etudiant.messages',     component: () => import('@/views/etudiant/Messages.vue') },
             ],
         },
         {
@@ -79,6 +80,7 @@ const router = createRouter({
                 { path: 'avancement',   name: 'professeur.avancement',   component: () => import('@/views/professeur/Avancement.vue') },
                 { path: 'carte-sig',    name: 'professeur.carte-sig',    component: () => import('@/views/professeur/CarteSIG.vue') },
                 { path: 'profil',       name: 'professeur.profil',       component: () => import('@/views/professeur/Profil.vue') },
+                { path: 'messages',     name: 'professeur.messages',     component: () => import('@/views/professeur/Messages.vue') },
             ],
         },
     ],

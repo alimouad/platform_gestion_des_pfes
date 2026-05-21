@@ -16,6 +16,7 @@ const nav = [
   { icon: 'fa-user-graduate',   label: 'Mes étudiants', to: '/professeur/etudiants' },
   { icon: 'fa-chart-line',      label: 'Avancement',    to: '/professeur/avancement' },
   { icon: 'fa-map-location-dot', label: 'Carte SIG',   to: '/professeur/carte-sig' },
+  { icon: 'fa-comments',        label: 'Messages',      to: '/professeur/messages' },
   { icon: 'fa-user',            label: 'Profil',        to: '/professeur/profil' },
 ]
 
