@@ -63,100 +63,125 @@ const roles = [
     <!-- ════════════════════════════════
          LEFT — dark branded panel
     ════════════════════════════════ -->
-    <div class="hidden lg:flex flex-col w-[55%] min-h-screen relative overflow-hidden" style="background:#07100f">
+    <div class="hidden lg:flex flex-col w-[52%] min-h-screen relative overflow-hidden" style="background:#1e4a49">
 
-      <!-- layered background -->
+      <!-- ── Background layers ── -->
+      <!-- depth overlay -->
+      <div class="abs-fill" style="background:radial-gradient(ellipse 70% 60% at 15% 25%,rgba(0,0,0,0.2) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 85% 85%,rgba(0,0,0,0.25) 0%,transparent 55%)"></div>
+      <!-- animated topo -->
       <div class="abs-fill topo-lines"></div>
-      <div class="abs-fill" style="background:radial-gradient(ellipse 70% 60% at 25% 40%,rgba(30,74,73,0.65) 0%,transparent 65%)"></div>
-      <div class="abs-fill" style="background:radial-gradient(ellipse 50% 50% at 80% 80%,rgba(214,232,122,0.06) 0%,transparent 60%)"></div>
-
-      <!-- grid dots -->
+      <!-- dot grid -->
       <div class="abs-fill grid-dots"></div>
+      <!-- vignette -->
+      <div class="abs-fill" style="background:radial-gradient(ellipse 100% 100% at 50% 50%,transparent 45%,rgba(0,0,0,0.2) 100%)"></div>
 
-      <!-- content -->
-      <div class="relative z-10 flex flex-col justify-between h-full px-16 py-14">
+      <!-- ── Decorative geometry ── -->
+      <!-- large ring top-right -->
+      <div class="pointer-events-none absolute" style="width:420px;height:420px;border-radius:50%;border:1px solid rgba(214,232,122,0.2);top:-140px;right:-100px"></div>
+      <div class="pointer-events-none absolute" style="width:280px;height:280px;border-radius:50%;border:1px solid rgba(214,232,122,0.12);top:-80px;right:-40px"></div>
+      <!-- small ring bottom-left -->
+      <div class="pointer-events-none absolute" style="width:200px;height:200px;border-radius:50%;border:1px solid rgba(214,232,122,0.14);bottom:80px;left:-60px"></div>
+      <!-- floating dots -->
+      <div class="pointer-events-none absolute w-2 h-2 rounded-full dot-float" style="background:#d6e87a;opacity:0.75;top:22%;right:18%"></div>
+      <div class="pointer-events-none absolute w-1.5 h-1.5 rounded-full dot-float" style="background:#d6e87a;opacity:0.45;top:40%;right:8%;animation-delay:-3s"></div>
+      <div class="pointer-events-none absolute w-1 h-1 rounded-full dot-float" style="background:#d6e87a;opacity:0.55;bottom:30%;right:25%;animation-delay:-6s"></div>
+      <!-- horizontal accent line -->
+      <div class="pointer-events-none absolute left-0 right-0" style="top:50%;height:1px;background:linear-gradient(90deg,rgba(214,232,122,0.3),rgba(214,232,122,0.1),transparent);opacity:0.8"></div>
 
-        <!-- logo -->
+      <!-- ── Content ── -->
+      <div class="relative z-10 flex flex-col justify-between h-full px-14 py-12">
+
+        <!-- TOP: logo + university -->
         <div class="flex items-center justify-between" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:0ms">
           <div class="flex items-center gap-3.5">
-            <div class="logo-gem flex h-12 w-12 items-center justify-center rounded-2xl">
+            <div class="logo-gem flex h-12 w-12 items-center justify-center rounded-2xl shrink-0">
               <i class="fa-solid fa-seedling" style="color:#1e4a49;font-size:1.1rem"></i>
             </div>
-            <div>
-              <p class="font-black text-white text-base leading-none tracking-tight">GAGE</p>
-              <p class="text-[10px] font-bold uppercase tracking-widest mt-0.5" style="color:rgba(214,232,122,0.4)">FSBM · Hassan II · Casablanca</p>
-            </div>
           </div>
-          <div class="live-badge flex items-center gap-2 rounded-full px-3.5 py-1.5">
+          <div class="live-badge flex items-center gap-1.5 rounded-full px-3 py-1.5 shrink-0">
             <span class="h-1.5 w-1.5 rounded-full animate-pulse" style="background:#d6e87a"></span>
-            <span class="text-[9px] font-black uppercase tracking-widest" style="color:rgba(214,232,122,0.8)">En ligne</span>
+            <span class="text-[9px] font-black uppercase tracking-widest" style="color:rgba(214,232,122,0.8)">2024–2026</span>
           </div>
         </div>
 
-        <!-- hero -->
-        <div class="space-y-10">
+        <!-- MIDDLE: headline + workflow steps -->
+        <div class="space-y-9">
+
+          <!-- headline -->
           <div :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:80ms">
-            <p class="text-[11px] font-black uppercase tracking-[0.25em] mb-5" style="color:rgba(214,232,122,0.5)">
-              Plateforme de gestion · 2024–2026
+            <p class="text-[10px] font-black uppercase tracking-[0.28em] mb-4" style="color:rgba(214,232,122,0.55)">
+              ✦ Plateforme PFE · FSBM Hassan II
             </p>
-            <h2 class="font-black text-white" style="font-size:clamp(2.8rem,4.5vw,4rem);line-height:1.0;letter-spacing:-0.03em">
-              Géomatique<br/>
-              <span class="lime-stroke">Appliquée</span><br/>
-              <span style="color:rgba(255,255,255,0.2)">aux Géosciences</span>
+            <h2 class="font-black text-white" style="font-size:clamp(2.4rem,3.8vw,3.4rem);line-height:1.05;letter-spacing:-0.035em">
+              Gérez votre<br/>
+              projet de fin<br/>
+              <span class="left-lime-fill">d'études</span>
             </h2>
-            <p class="mt-6 text-sm leading-relaxed" style="color:rgba(255,255,255,0.35);max-width:320px">
-              Pilotez votre projet de fin d'études de la soumission jusqu'à la soutenance, avec cartographie SIG intégrée.
+            <p class="mt-4 text-sm leading-relaxed font-medium" style="color:rgba(255,255,255,0.38);max-width:310px">
+              Soumission, suivi, cartographie SIG, messagerie avec l'encadrant et soutenance — tout en un seul espace.
             </p>
           </div>
 
-          <!-- features -->
-          <div class="space-y-2" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:160ms">
-            <div v-for="(f, i) in features" :key="f.label"
-              class="feature-row flex items-center gap-4 rounded-2xl px-5 py-3.5"
-              :style="`transition-delay:${200 + i * 60}ms`"
-              :class="mounted ? 'anim-in' : 'opacity-0'">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl feature-icon">
-                <i :class="`fa-solid ${f.icon} text-xs`" style="color:#d6e87a"></i>
+          <!-- workflow timeline -->
+          <div class="space-y-0" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:200ms">
+            <div v-for="(step, i) in [
+              { icon:'fa-file-pen',          label:'Soumission du sujet',     sub:'Proposé par le professeur encadrant' },
+              { icon:'fa-user-check',         label:'Affectation étudiant',    sub:'Postulation et sélection par le coordinateur' },
+              { icon:'fa-map-location-dot',   label:'Zone d\'étude SIG',       sub:'Cartographie interactive avec Leaflet' },
+              { icon:'fa-boxes-stacked',      label:'Dépôt des livrables',     sub:'Rapports, fichiers et données validés' },
+              { icon:'fa-graduation-cap',     label:'Soutenance & note',       sub:'Jury, salle, date et note finale /20' },
+            ]" :key="step.label"
+              class="step-row flex items-center gap-4 py-3 relative"
+              :class="mounted ? 'anim-in' : 'opacity-0'"
+              :style="`transition-delay:${240 + i * 60}ms`">
+              <!-- connector line -->
+              <div v-if="i < 4" class="step-line absolute left-[18px]" style="top:calc(50% + 14px);width:1px;height:calc(100% - 2px)"></div>
+              <!-- icon circle -->
+              <div class="step-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-full z-10">
+                <i :class="`fa-solid ${step.icon}`" style="font-size:11px;color:#d6e87a"></i>
               </div>
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-white">{{ f.label }}</p>
-                <p class="text-[11px]" style="color:rgba(255,255,255,0.28)">{{ f.sub }}</p>
+                <p class="text-sm font-black text-white leading-none">{{ step.label }}</p>
+                <p class="text-[10px] mt-0.5 font-medium" style="color:rgba(255,255,255,0.3)">{{ step.sub }}</p>
               </div>
-              <div class="check-dot flex h-5 w-5 items-center justify-center rounded-full">
-                <i class="fa-solid fa-check" style="font-size:8px;color:#d6e87a"></i>
-              </div>
+              <div class="step-num text-[10px] font-black" style="color:rgba(214,232,122,0.4)">0{{ i + 1 }}</div>
             </div>
           </div>
         </div>
 
-        <!-- stats -->
-        <div class="flex gap-10 pt-8 stats-row" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:500ms">
-          <div v-for="s in [{ n:'2 635', l:'Étudiants' }, { n:'29', l:'Professeurs' }, { n:'84+', l:'Projets PFE' }]" :key="s.l"
-            class="stat-item">
-            <p class="font-black text-white" style="font-size:2rem;line-height:1;letter-spacing:-0.04em">{{ s.n }}</p>
-            <p class="text-[10px] font-bold uppercase tracking-widest mt-1.5" style="color:rgba(255,255,255,0.22)">{{ s.l }}</p>
+        <!-- BOTTOM: institution info -->
+        <div :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:580ms">
+          <div class="flex items-center gap-4 pt-6" style="border-top:1px solid rgba(255,255,255,0.08)">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style="background:rgba(214,232,122,0.1);border:1px solid rgba(214,232,122,0.15)">
+              <i class="fa-solid fa-building-columns" style="color:#d6e87a;font-size:13px"></i>
+            </div>
+            <div>
+              <p class="text-xs font-black text-white leading-none">Faculté des Sciences Ben M'Sick</p>
+              <p class="text-[10px] mt-0.5 font-medium" style="color:rgba(255,255,255,0.3)">Université Hassan II de Casablanca · Master GAGE</p>
+            </div>
           </div>
         </div>
+
       </div>
     </div>
 
     <!-- ════════════════════════════════
          RIGHT — form panel
     ════════════════════════════════ -->
-    <div class="flex flex-1 flex-col min-h-screen relative overflow-hidden" style="background:#f8f9f4">
+    <div class="flex flex-1 flex-col min-h-screen relative overflow-hidden" style="background:#f0f3eb">
 
       <!-- layered bg -->
       <div class="abs-fill light-dots"></div>
-      <div class="abs-fill" style="background:linear-gradient(160deg,rgba(214,232,122,0.13) 0%,transparent 45%,rgba(30,74,73,0.04) 100%)"></div>
+      <div class="abs-fill" style="background:linear-gradient(160deg,rgba(214,232,122,0.18) 0%,transparent 45%,rgba(30,74,73,0.05) 100%)"></div>
 
       <!-- decorative corner shapes -->
-      <div class="pointer-events-none absolute" style="width:320px;height:320px;border-radius:50%;background:conic-gradient(from 180deg,rgba(214,232,122,0.18),rgba(30,74,73,0.08),transparent);top:-80px;right:-80px;filter:blur(2px);opacity:0.7"></div>
-      <div class="pointer-events-none absolute" style="width:200px;height:200px;border-radius:50%;border:40px solid rgba(214,232,122,0.12);bottom:60px;left:-60px"></div>
-      <div class="pointer-events-none absolute" style="width:120px;height:120px;border-radius:50%;border:24px solid rgba(30,74,73,0.06);bottom:200px;right:30px"></div>
+      <div class="pointer-events-none absolute" style="width:320px;height:320px;border-radius:50%;border:50px solid rgba(214,232,122,0.18);top:-100px;right:-100px"></div>
+      <div class="pointer-events-none absolute" style="width:200px;height:200px;border-radius:50%;border:32px solid rgba(30,74,73,0.08);bottom:60px;left:-60px"></div>
+      <div class="pointer-events-none absolute" style="width:120px;height:120px;border-radius:50%;border:20px solid rgba(214,232,122,0.12);bottom:200px;right:30px"></div>
       <!-- floating dots -->
-      <div class="pointer-events-none absolute w-2 h-2 rounded-full" style="background:#d6e87a;opacity:0.5;top:18%;right:12%"></div>
-      <div class="pointer-events-none absolute w-1.5 h-1.5 rounded-full" style="background:#1e4a49;opacity:0.25;top:35%;right:20%"></div>
-      <div class="pointer-events-none absolute w-2.5 h-2.5 rounded-full" style="background:#d6e87a;opacity:0.3;bottom:22%;left:14%"></div>
+      <div class="pointer-events-none absolute w-2 h-2 rounded-full" style="background:#d6e87a;opacity:0.6;top:18%;right:12%"></div>
+      <div class="pointer-events-none absolute w-1.5 h-1.5 rounded-full" style="background:#1e4a49;opacity:0.3;top:35%;right:20%"></div>
+      <div class="pointer-events-none absolute w-2.5 h-2.5 rounded-full" style="background:#d6e87a;opacity:0.4;bottom:22%;left:14%"></div>
 
       <div class="relative z-10 flex flex-1 flex-col items-center justify-center px-8 py-10">
         <div class="w-full" style="max-width:400px">
@@ -288,7 +313,7 @@ const roles = [
 
 /* ── topo contour lines ── */
 .topo-lines {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000'%3E%3Cg fill='none' stroke='rgba(214,232,122,0.055)' stroke-width='1'%3E%3Cellipse cx='500' cy='500' rx='480' ry='200'/%3E%3Cellipse cx='500' cy='500' rx='420' ry='172'/%3E%3Cellipse cx='500' cy='500' rx='360' ry='146'/%3E%3Cellipse cx='500' cy='500' rx='300' ry='120'/%3E%3Cellipse cx='500' cy='500' rx='240' ry='96'/%3E%3Cellipse cx='500' cy='500' rx='180' ry='74'/%3E%3Cellipse cx='500' cy='500' rx='120' ry='52'/%3E%3Cellipse cx='500' cy='500' rx='60' ry='30'/%3E%3Cellipse cx='500' cy='500' rx='460' ry='420'/%3E%3Cellipse cx='500' cy='500' rx='400' ry='360'/%3E%3Cellipse cx='500' cy='500' rx='340' ry='300'/%3E%3Cellipse cx='500' cy='500' rx='280' ry='240'/%3E%3Cellipse cx='500' cy='500' rx='220' ry='180'/%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000'%3E%3Cg fill='none' stroke='rgba(214,232,122,0.12)' stroke-width='1'%3E%3Cellipse cx='500' cy='500' rx='480' ry='200'/%3E%3Cellipse cx='500' cy='500' rx='420' ry='172'/%3E%3Cellipse cx='500' cy='500' rx='360' ry='146'/%3E%3Cellipse cx='500' cy='500' rx='300' ry='120'/%3E%3Cellipse cx='500' cy='500' rx='240' ry='96'/%3E%3Cellipse cx='500' cy='500' rx='180' ry='74'/%3E%3Cellipse cx='500' cy='500' rx='120' ry='52'/%3E%3Cellipse cx='500' cy='500' rx='60' ry='30'/%3E%3Cellipse cx='500' cy='500' rx='460' ry='420'/%3E%3Cellipse cx='500' cy='500' rx='400' ry='360'/%3E%3Cellipse cx='500' cy='500' rx='340' ry='300'/%3E%3Cellipse cx='500' cy='500' rx='280' ry='240'/%3E%3Cellipse cx='500' cy='500' rx='220' ry='180'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 115% 115%;
   background-position: center;
   animation: topo-drift 28s ease-in-out infinite alternate;
@@ -300,73 +325,66 @@ const roles = [
 
 /* ── dot grids ── */
 .grid-dots {
-  background-image: radial-gradient(circle, rgba(214,232,122,0.12) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(214,232,122,0.18) 1px, transparent 1px);
   background-size: 32px 32px;
-  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
 }
 .light-dots {
-  background-image: radial-gradient(circle, rgba(30,74,73,0.07) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(30,74,73,0.1) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
 /* ── logo gem ── */
 .logo-gem {
   background: linear-gradient(135deg, #d6e87a 0%, #a8c44a 100%);
-  box-shadow: 0 0 0 0 rgba(214,232,122,0.5);
+  box-shadow: 0 0 0 0 rgba(214,232,122,0.4), 0 4px 16px rgba(214,232,122,0.2);
   animation: gem-pulse 3.5s ease-in-out infinite;
 }
 @keyframes gem-pulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(214,232,122,0.5); }
-  50%      { box-shadow: 0 0 0 14px rgba(214,232,122,0); }
+  0%,100% { box-shadow: 0 0 0 0 rgba(214,232,122,0.4), 0 4px 16px rgba(214,232,122,0.2); }
+  50%      { box-shadow: 0 0 0 12px rgba(214,232,122,0), 0 4px 24px rgba(214,232,122,0.3); }
 }
 
 /* ── live badge ── */
 .live-badge {
-  background: rgba(214,232,122,0.08);
+  background: rgba(214,232,122,0.07);
+  border: 1px solid rgba(214,232,122,0.16);
+  backdrop-filter: blur(10px);
+}
+
+/* ── lime filled text ── */
+.left-lime-fill {
+  background: linear-gradient(135deg, #d6e87a 0%, #c8e060 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── floating dots ── */
+.dot-float {
+  animation: dot-float 6s ease-in-out infinite alternate;
+}
+@keyframes dot-float {
+  from { transform: translateY(0px); opacity: 0.5; }
+  to   { transform: translateY(-8px); opacity: 0.15; }
+}
+
+/* ── workflow steps ── */
+.step-row { cursor: default; }
+.step-icon {
+  background: rgba(214,232,122,0.1);
   border: 1px solid rgba(214,232,122,0.18);
-  backdrop-filter: blur(8px);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s;
 }
-
-/* ── lime stroke text ── */
-.lime-stroke {
-  -webkit-text-stroke: 2px #d6e87a;
-  color: transparent;
+.step-row:hover .step-icon {
+  background: rgba(214,232,122,0.18);
+  border-color: rgba(214,232,122,0.35);
+  transform: scale(1.08);
 }
-
-/* ── feature rows ── */
-.feature-row {
-  border: 1px solid rgba(255,255,255,0.05);
-  background: rgba(255,255,255,0.02);
-  backdrop-filter: blur(4px);
-  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+.step-line {
+  background: linear-gradient(to bottom, rgba(214,232,122,0.2), rgba(214,232,122,0.04));
 }
-.feature-row:hover {
-  background: rgba(214,232,122,0.06);
-  border-color: rgba(214,232,122,0.15);
-  transform: translateX(4px);
-}
-.feature-icon {
-  background: rgba(214,232,122,0.08);
-  border: 1px solid rgba(214,232,122,0.14);
-  transition: background 0.2s;
-}
-.feature-row:hover .feature-icon { background: rgba(214,232,122,0.14); }
-.check-dot {
-  background: rgba(214,232,122,0.08);
-  border: 1px solid rgba(214,232,122,0.15);
-}
-
-/* ── stats ── */
-.stats-row { border-top: 1px solid rgba(255,255,255,0.06); }
-.stat-item { position: relative; }
-.stat-item::after {
-  content:'';
-  position:absolute;
-  right:-20px; top:10%; height:80%;
-  width:1px;
-  background: rgba(255,255,255,0.07);
-}
-.stat-item:last-child::after { display:none; }
+.step-num { min-width: 20px; text-align: right; }
 
 /* ── heading accent ── */
 .heading-accent {
