@@ -28,7 +28,8 @@
       "Bash(python3 -c \"import docx\")",
       "Read(//usr/bin/**)",
       "Bash(xargs ls)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('Vue:',d.get\\('dependencies',{}\\).get\\('vue',''\\)\\); print\\('Router:',d.get\\('dependencies',{}\\).get\\('vue-router',''\\)\\); print\\('Vite:',d.get\\('devDependencies',{}\\).get\\('vite',''\\)\\)\")"
     ]
   }
 }
