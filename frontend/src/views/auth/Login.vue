@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import apiClient, { setAuthToken } from '@/services/api'
 
@@ -9,6 +9,9 @@ const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
 const loginError = ref('')
+const mounted = ref(false)
+
+onMounted(() => { setTimeout(() => { mounted.value = true }, 50) })
 
 async function submit() {
   loginError.value = ''
@@ -38,192 +41,487 @@ async function submit() {
     loading.value = false
   }
 }
+
+const features = [
+  { icon: 'fa-folder-open',      label: 'Cycle PFE complet',       sub: 'Soumission → Soutenance' },
+  { icon: 'fa-map-location-dot', label: 'Carte SIG interactive',    sub: 'Zones d\'étude & clustering' },
+  { icon: 'fa-comments',         label: 'Messagerie intégrée',      sub: 'Étudiant ↔ Encadrant' },
+  { icon: 'fa-chart-pie',        label: 'Statistiques temps réel',  sub: 'Tableau de bord analytique' },
+]
+
+const roles = [
+  { icon: 'fa-user-shield',     label: 'Administrateur', color: '#7c3aed', bg: '#f5f3ff', border: '#e9d5ff' },
+  { icon: 'fa-user-tie',        label: 'Coordinateur',   color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+  { icon: 'fa-chalkboard-user', label: 'Professeur',     color: '#1e4a49', bg: '#f0f5e0', border: '#c6da5a' },
+  { icon: 'fa-user-graduate',   label: 'Étudiant',       color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
+]
 </script>
 
 <template>
-  <div class="min-h-screen w-full font-sans antialiased flex" style="background:#f5f5f0">
+  <div class="min-h-screen w-full flex font-sans antialiased overflow-hidden">
 
-    <!-- LEFT — illustration panel -->
-    <div class="hidden lg:flex flex-col w-[45%] min-h-screen relative overflow-hidden" style="background:#f0f5e0">
+    <!-- ════════════════════════════════
+         LEFT — dark branded panel
+    ════════════════════════════════ -->
+    <div class="hidden lg:flex flex-col w-[55%] min-h-screen relative overflow-hidden" style="background:#07100f">
 
-      <!-- decorative shapes -->
-      <div class="absolute top-0 left-0 w-full h-full">
-        <div class="absolute top-16 right-12 w-64 h-64 rounded-full border-[40px] border-[#d6e87a]/30"></div>
-        <div class="absolute bottom-24 left-8 w-40 h-40 rounded-full border-[28px] border-[#1e4a49]/10"></div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-[#1e4a49]/5"></div>
-        <div class="absolute top-1/3 left-8 w-4 h-4 rounded-full bg-[#d6e87a]"></div>
-        <div class="absolute bottom-1/3 right-16 w-3 h-3 rounded-full bg-[#1e4a49]/20"></div>
-        <div class="absolute top-2/3 left-1/3 w-2 h-2 rounded-full bg-[#d6e87a]/60"></div>
-      </div>
+      <!-- layered background -->
+      <div class="abs-fill topo-lines"></div>
+      <div class="abs-fill" style="background:radial-gradient(ellipse 70% 60% at 25% 40%,rgba(30,74,73,0.65) 0%,transparent 65%)"></div>
+      <div class="abs-fill" style="background:radial-gradient(ellipse 50% 50% at 80% 80%,rgba(214,232,122,0.06) 0%,transparent 60%)"></div>
+
+      <!-- grid dots -->
+      <div class="abs-fill grid-dots"></div>
 
       <!-- content -->
-      <div class="relative flex-1 flex flex-col justify-between px-14 py-14">
+      <div class="relative z-10 flex flex-col justify-between h-full px-16 py-14">
 
-        <!-- top logo -->
-        <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#1e4a49]">
-            <i class="fa-solid fa-seedling text-[#d6e87a] text-sm"></i>
+        <!-- logo -->
+        <div class="flex items-center justify-between" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:0ms">
+          <div class="flex items-center gap-3.5">
+            <div class="logo-gem flex h-12 w-12 items-center justify-center rounded-2xl">
+              <i class="fa-solid fa-seedling" style="color:#1e4a49;font-size:1.1rem"></i>
+            </div>
+            <div>
+              <p class="font-black text-white text-base leading-none tracking-tight">GAGE</p>
+              <p class="text-[10px] font-bold uppercase tracking-widest mt-0.5" style="color:rgba(214,232,122,0.4)">FSBM · Hassan II · Casablanca</p>
+            </div>
           </div>
-          <div>
-            <p class="font-black text-[#1e4a49] text-sm leading-none">FSBM</p>
-            <p class="text-[10px] font-bold text-[#1e4a49]/40 uppercase tracking-widest">Hassan II · Casablanca</p>
+          <div class="live-badge flex items-center gap-2 rounded-full px-3.5 py-1.5">
+            <span class="h-1.5 w-1.5 rounded-full animate-pulse" style="background:#d6e87a"></span>
+            <span class="text-[9px] font-black uppercase tracking-widest" style="color:rgba(214,232,122,0.8)">En ligne</span>
           </div>
         </div>
 
-        <!-- center illustration area -->
-        <div class="space-y-8">
-          <!-- big number + label -->
-          <div>
-            <div class="text-[120px] font-black leading-none tracking-tighter" style="color:#1e4a49; opacity:0.07">PFE</div>
-            <div class="-mt-6 space-y-2">
-              <h2 class="text-4xl font-black text-[#1e4a49] leading-tight tracking-tight">
-                Plateforme de<br/>gestion PFE
-              </h2>
-              <p class="text-sm text-[#1e4a49]/50 font-medium max-w-xs leading-relaxed">
-                Master Géomatique Appliquée aux Géosciences et Environnement · 2024–2026
-              </p>
+        <!-- hero -->
+        <div class="space-y-10">
+          <div :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:80ms">
+            <p class="text-[11px] font-black uppercase tracking-[0.25em] mb-5" style="color:rgba(214,232,122,0.5)">
+              Plateforme de gestion · 2024–2026
+            </p>
+            <h2 class="font-black text-white" style="font-size:clamp(2.8rem,4.5vw,4rem);line-height:1.0;letter-spacing:-0.03em">
+              Géomatique<br/>
+              <span class="lime-stroke">Appliquée</span><br/>
+              <span style="color:rgba(255,255,255,0.2)">aux Géosciences</span>
+            </h2>
+            <p class="mt-6 text-sm leading-relaxed" style="color:rgba(255,255,255,0.35);max-width:320px">
+              Pilotez votre projet de fin d'études de la soumission jusqu'à la soutenance, avec cartographie SIG intégrée.
+            </p>
+          </div>
+
+          <!-- features -->
+          <div class="space-y-2" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:160ms">
+            <div v-for="(f, i) in features" :key="f.label"
+              class="feature-row flex items-center gap-4 rounded-2xl px-5 py-3.5"
+              :style="`transition-delay:${200 + i * 60}ms`"
+              :class="mounted ? 'anim-in' : 'opacity-0'">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl feature-icon">
+                <i :class="`fa-solid ${f.icon} text-xs`" style="color:#d6e87a"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-white">{{ f.label }}</p>
+                <p class="text-[11px]" style="color:rgba(255,255,255,0.28)">{{ f.sub }}</p>
+              </div>
+              <div class="check-dot flex h-5 w-5 items-center justify-center rounded-full">
+                <i class="fa-solid fa-check" style="font-size:8px;color:#d6e87a"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- stats -->
+        <div class="flex gap-10 pt-8 stats-row" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:500ms">
+          <div v-for="s in [{ n:'2 635', l:'Étudiants' }, { n:'29', l:'Professeurs' }, { n:'84+', l:'Projets PFE' }]" :key="s.l"
+            class="stat-item">
+            <p class="font-black text-white" style="font-size:2rem;line-height:1;letter-spacing:-0.04em">{{ s.n }}</p>
+            <p class="text-[10px] font-bold uppercase tracking-widest mt-1.5" style="color:rgba(255,255,255,0.22)">{{ s.l }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════
+         RIGHT — form panel
+    ════════════════════════════════ -->
+    <div class="flex flex-1 flex-col min-h-screen relative overflow-hidden" style="background:#f8f9f4">
+
+      <!-- layered bg -->
+      <div class="abs-fill light-dots"></div>
+      <div class="abs-fill" style="background:linear-gradient(160deg,rgba(214,232,122,0.13) 0%,transparent 45%,rgba(30,74,73,0.04) 100%)"></div>
+
+      <!-- decorative corner shapes -->
+      <div class="pointer-events-none absolute" style="width:320px;height:320px;border-radius:50%;background:conic-gradient(from 180deg,rgba(214,232,122,0.18),rgba(30,74,73,0.08),transparent);top:-80px;right:-80px;filter:blur(2px);opacity:0.7"></div>
+      <div class="pointer-events-none absolute" style="width:200px;height:200px;border-radius:50%;border:40px solid rgba(214,232,122,0.12);bottom:60px;left:-60px"></div>
+      <div class="pointer-events-none absolute" style="width:120px;height:120px;border-radius:50%;border:24px solid rgba(30,74,73,0.06);bottom:200px;right:30px"></div>
+      <!-- floating dots -->
+      <div class="pointer-events-none absolute w-2 h-2 rounded-full" style="background:#d6e87a;opacity:0.5;top:18%;right:12%"></div>
+      <div class="pointer-events-none absolute w-1.5 h-1.5 rounded-full" style="background:#1e4a49;opacity:0.25;top:35%;right:20%"></div>
+      <div class="pointer-events-none absolute w-2.5 h-2.5 rounded-full" style="background:#d6e87a;opacity:0.3;bottom:22%;left:14%"></div>
+
+      <div class="relative z-10 flex flex-1 flex-col items-center justify-center px-8 py-10">
+        <div class="w-full" style="max-width:400px">
+
+          <!-- mobile logo -->
+          <div class="mb-8 flex items-center gap-3 lg:hidden">
+            <div class="logo-gem flex h-10 w-10 items-center justify-center rounded-2xl">
+              <i class="fa-solid fa-seedling text-sm" style="color:#1e4a49"></i>
+            </div>
+            <span class="font-black text-base" style="color:#0b1f1e">GAGE · FSBM</span>
+          </div>
+
+          <!-- eyebrow -->
+          <div class="mb-6" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:60ms">
+            <div class="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5" style="background:rgba(30,74,73,0.07);border:1px solid rgba(30,74,73,0.12)">
+              <span class="flex h-4 w-4 items-center justify-center rounded-full" style="background:#1e4a49">
+                <i class="fa-solid fa-shield-halved" style="color:#d6e87a;font-size:8px"></i>
+              </span>
+              <span class="text-[10px] font-black uppercase tracking-widest" style="color:#1e4a49">Accès institutionnel sécurisé</span>
             </div>
           </div>
 
-          <!-- feature cards -->
-          <div class="space-y-3">
-            <div v-for="f in [
-              { icon: 'fa-folder-open',     text: 'Gestion complète du cycle PFE', sub: 'De la soumission à la soutenance' },
-              { icon: 'fa-map-location-dot',text: 'Carte SIG interactive',          sub: 'Visualisation des zones d\'étude' },
-              { icon: 'fa-comments',         text: 'Messagerie intégrée',            sub: 'Communication étudiant–encadrant' },
-            ]" :key="f.text"
-              class="flex items-center gap-4 rounded-2xl bg-white/60 px-5 py-3.5 backdrop-blur-sm border border-white">
-              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#1e4a49]">
-                <i :class="`fa-solid ${f.icon} text-[#d6e87a] text-sm`"></i>
+          <!-- heading -->
+          <div class="mb-8" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:120ms">
+
+            <p class="mt-3 text-sm font-medium leading-relaxed" style="color:#8a9e9a;max-width:300px">
+              Connectez-vous pour accéder à votre espace personnel de gestion PFE.
+            </p>
+          </div>
+
+          <!-- form -->
+          <form @submit.prevent="submit" novalidate
+            class="space-y-4" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:180ms">
+
+            <!-- email field -->
+            <div class="r-field">
+              <label class="r-label">
+                <i class="fa-regular fa-envelope" style="color:#1e4a49;font-size:9px"></i>
+                Adresse e-mail
+              </label>
+              <div class="input-shell">
+                <input v-model="email" type="email" placeholder="prenom.nom@fsbm.ac.ma" required class="r-input" />
+                <div class="input-bar"></div>
+              </div>
+            </div>
+
+            <!-- password field -->
+            <div class="r-field">
+              <label class="r-label">
+                <i class="fa-solid fa-lock" style="color:#1e4a49;font-size:9px"></i>
+                Mot de passe
+              </label>
+              <div class="input-shell">
+                <input v-model="password" :type="showPassword ? 'text' : 'password'" placeholder="••••••••" required class="r-input pr-12" />
+                <div class="input-bar"></div>
+                <button type="button" @click="showPassword = !showPassword" class="eye-toggle">
+                  <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- error -->
+            <Transition enter-active-class="transition-all duration-300" enter-from-class="opacity-0 -translate-y-1" leave-active-class="transition-all duration-200" leave-to-class="opacity-0">
+              <div v-if="loginError" class="flex items-center gap-3 rounded-2xl px-4 py-3.5" style="background:#fff5f5;border:1.5px solid #fecaca">
+                <div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full" style="background:#fee2e2">
+                  <i class="fa-solid fa-exclamation text-[10px]" style="color:#f87171"></i>
+                </div>
+                <p class="text-sm font-semibold" style="color:#dc2626">{{ loginError }}</p>
+              </div>
+            </Transition>
+
+            <!-- submit -->
+            <button type="submit" :disabled="loading || !email || !password" class="submit-btn w-full">
+              <span class="submit-bg"></span>
+              <span class="submit-glow"></span>
+              <span class="relative z-10 flex items-center justify-center gap-3 text-sm font-black text-white">
+                <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i>
+                <i v-else class="fa-solid fa-arrow-right-to-bracket btn-arrow"></i>
+                {{ loading ? 'Connexion en cours…' : 'Se connecter' }}
+              </span>
+            </button>
+          </form>
+
+          <!-- divider -->
+          <div class="my-7 flex items-center gap-4" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:260ms">
+            <div class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(30,74,73,0.12))"></div>
+            <span class="text-[9px] font-black uppercase tracking-widest px-1" style="color:#aabfb8">Espaces disponibles</span>
+            <div class="flex-1 h-px" style="background:linear-gradient(90deg,rgba(30,74,73,0.12),transparent)"></div>
+          </div>
+
+          <!-- roles grid -->
+          <div class="grid grid-cols-2 gap-3" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:320ms">
+            <div v-for="(r,i) in roles" :key="r.label"
+              class="role-card"
+              :class="mounted ? 'anim-in' : 'opacity-0'"
+              :style="`transition-delay:${340 + i*50}ms`">
+              <div class="role-card-icon" :style="`background:${r.color}12`">
+                <i :class="`fa-solid ${r.icon}`" :style="`color:${r.color};font-size:13px`"></i>
               </div>
               <div>
-                <p class="text-sm font-black text-[#1e4a49]">{{ f.text }}</p>
-                <p class="text-[11px] text-[#1e4a49]/40 font-medium">{{ f.sub }}</p>
+                <p class="text-xs font-black" :style="`color:${r.color}`">{{ r.label }}</p>
+                <p class="text-[9px] font-medium mt-0.5" style="color:#a0b4ae">Espace dédié</p>
               </div>
+              <div class="role-dot ml-auto" :style="`background:${r.color}`"></div>
             </div>
           </div>
-        </div>
 
-        <!-- bottom stats -->
-        <div class="flex gap-6">
-          <div v-for="s in [{ n:'2635', l:'Étudiants' },{ n:'29', l:'Professeurs' },{ n:'84', l:'Projets' }]" :key="s.l">
-            <p class="text-2xl font-black text-[#1e4a49]">{{ s.n }}</p>
-            <p class="text-[11px] font-bold text-[#1e4a49]/40 uppercase tracking-widest">{{ s.l }}</p>
+          <!-- footer -->
+          <div class="mt-8 flex flex-col items-center gap-1" :class="mounted ? 'anim-in' : 'opacity-0'" style="transition-delay:500ms">
+            <div class="flex items-center gap-2">
+              <div class="h-px w-8" style="background:rgba(30,74,73,0.15)"></div>
+              <i class="fa-solid fa-seedling text-[10px]" style="color:rgba(30,74,73,0.3)"></i>
+              <div class="h-px w-8" style="background:rgba(30,74,73,0.15)"></div>
+            </div>
+            <p class="text-[9px] font-medium text-center" style="color:#b0bfb0">
+              Faculté des Sciences Ben M'Sick · Université Hassan II de Casablanca
+            </p>
           </div>
+
         </div>
       </div>
     </div>
 
-    <!-- RIGHT — form -->
-    <div class="flex flex-1 items-center justify-center px-6 py-12 lg:px-16">
-      <div class="w-full max-w-sm">
-
-        <!-- mobile logo -->
-        <div class="mb-10 flex items-center gap-3 lg:hidden">
-          <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1e4a49]">
-            <i class="fa-solid fa-seedling text-[#d6e87a] text-sm"></i>
-          </div>
-          <span class="font-black text-[#1e4a49] text-base">FSBM · Plateforme PFE</span>
-        </div>
-
-        <!-- heading -->
-        <div class="mb-10">
-          <div class="inline-flex items-center gap-2 rounded-full bg-[#d6e87a]/30 px-3 py-1.5 mb-5">
-            <span class="h-1.5 w-1.5 rounded-full bg-[#4a7a30]"></span>
-            <span class="text-[11px] font-black uppercase tracking-widest text-[#4a7a30]">Accès sécurisé</span>
-          </div>
-          <h1 class="text-3xl font-black text-[#1e4a49] tracking-tight">Connexion</h1>
-          <p class="mt-2 text-sm text-slate-400 font-medium">Identifiants institutionnels requis.</p>
-        </div>
-
-        <!-- form -->
-        <form @submit.prevent="submit" novalidate class="space-y-4">
-
-          <!-- email -->
-          <div>
-            <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">E-mail</label>
-            <div class="relative">
-              <i class="fa-regular fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-              <input
-                v-model="email"
-                type="email"
-                placeholder="prenom.nom@fsbm.ac.ma"
-                required
-                class="w-full rounded-2xl border-2 border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm font-semibold text-slate-800 placeholder:text-slate-300 outline-none transition-all focus:border-[#1e4a49] focus:shadow-[0_0_0_4px_rgba(30,74,73,0.08)]"
-              />
-            </div>
-          </div>
-
-          <!-- password -->
-          <div>
-            <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">Mot de passe</label>
-            <div class="relative">
-              <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-              <input
-                v-model="password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="••••••••"
-                required
-                class="w-full rounded-2xl border-2 border-slate-200 bg-white py-3.5 pl-11 pr-12 text-sm font-semibold text-slate-800 placeholder:text-slate-300 outline-none transition-all focus:border-[#1e4a49] focus:shadow-[0_0_0_4px_rgba(30,74,73,0.08)]"
-              />
-              <button type="button" @click="showPassword = !showPassword"
-                class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-slate-600 transition-colors">
-                <i :class="showPassword ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- error -->
-          <Transition enter-active-class="transition-all duration-300" enter-from-class="opacity-0 -translate-y-1"
-            leave-active-class="transition-all duration-200" leave-to-class="opacity-0">
-            <div v-if="loginError" class="flex items-center gap-3 rounded-2xl border border-red-100 bg-red-50 px-4 py-3">
-              <i class="fa-solid fa-circle-exclamation text-red-400 text-sm shrink-0"></i>
-              <p class="text-sm font-semibold text-red-600">{{ loginError }}</p>
-            </div>
-          </Transition>
-
-          <!-- submit -->
-          <button type="submit" :disabled="loading || !email || !password"
-            class="group w-full rounded-2xl py-4 text-sm font-black text-white shadow-lg transition-all hover:shadow-xl hover:shadow-[#1e4a49]/20 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-            style="background: #1e4a49">
-            <span class="flex items-center justify-center gap-3">
-              <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i>
-              <i v-else class="fa-solid fa-arrow-right-to-bracket transition-transform group-hover:translate-x-0.5"></i>
-              {{ loading ? 'Connexion…' : 'Se connecter' }}
-            </span>
-          </button>
-        </form>
-
-        <!-- roles -->
-        <div class="mt-10">
-          <p class="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-4">Espaces disponibles</p>
-          <div class="grid grid-cols-2 gap-2">
-            <div v-for="r in [
-              { icon: 'fa-user-shield',    label: 'Administrateur', bg: 'bg-violet-50', text: 'text-violet-600', dot: 'bg-violet-400' },
-              { icon: 'fa-user-tie',        label: 'Coordinateur',  bg: 'bg-sky-50',    text: 'text-sky-600',    dot: 'bg-sky-400' },
-              { icon: 'fa-chalkboard-user', label: 'Professeur',    bg: 'bg-[#f0f5e0]', text: 'text-[#4a7a30]',  dot: 'bg-[#d6e87a]' },
-              { icon: 'fa-user-graduate',   label: 'Étudiant',      bg: 'bg-orange-50', text: 'text-orange-600', dot: 'bg-orange-400' },
-            ]" :key="r.label"
-              class="flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-3.5 py-3">
-              <span class="h-2 w-2 rounded-full shrink-0" :class="r.dot"></span>
-              <span class="text-xs font-bold text-slate-700 truncate">{{ r.label }}</span>
-            </div>
-          </div>
-        </div>
-
-        <p class="mt-8 text-center text-[10px] text-slate-300">
-          Faculté des Sciences Ben M'Sick · Université Hassan II de Casablanca
-        </p>
-      </div>
-    </div>
   </div>
 </template>
 
 <style scoped>
+.abs-fill { position:absolute; inset:0; pointer-events:none; }
+
+/* ── topo contour lines ── */
+.topo-lines {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='1000'%3E%3Cg fill='none' stroke='rgba(214,232,122,0.055)' stroke-width='1'%3E%3Cellipse cx='500' cy='500' rx='480' ry='200'/%3E%3Cellipse cx='500' cy='500' rx='420' ry='172'/%3E%3Cellipse cx='500' cy='500' rx='360' ry='146'/%3E%3Cellipse cx='500' cy='500' rx='300' ry='120'/%3E%3Cellipse cx='500' cy='500' rx='240' ry='96'/%3E%3Cellipse cx='500' cy='500' rx='180' ry='74'/%3E%3Cellipse cx='500' cy='500' rx='120' ry='52'/%3E%3Cellipse cx='500' cy='500' rx='60' ry='30'/%3E%3Cellipse cx='500' cy='500' rx='460' ry='420'/%3E%3Cellipse cx='500' cy='500' rx='400' ry='360'/%3E%3Cellipse cx='500' cy='500' rx='340' ry='300'/%3E%3Cellipse cx='500' cy='500' rx='280' ry='240'/%3E%3Cellipse cx='500' cy='500' rx='220' ry='180'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 115% 115%;
+  background-position: center;
+  animation: topo-drift 28s ease-in-out infinite alternate;
+}
+@keyframes topo-drift {
+  from { background-position: 42% 42%; background-size: 115% 115%; }
+  to   { background-position: 58% 58%; background-size: 120% 120%; }
+}
+
+/* ── dot grids ── */
+.grid-dots {
+  background-image: radial-gradient(circle, rgba(214,232,122,0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 100%);
+}
+.light-dots {
+  background-image: radial-gradient(circle, rgba(30,74,73,0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── logo gem ── */
+.logo-gem {
+  background: linear-gradient(135deg, #d6e87a 0%, #a8c44a 100%);
+  box-shadow: 0 0 0 0 rgba(214,232,122,0.5);
+  animation: gem-pulse 3.5s ease-in-out infinite;
+}
+@keyframes gem-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(214,232,122,0.5); }
+  50%      { box-shadow: 0 0 0 14px rgba(214,232,122,0); }
+}
+
+/* ── live badge ── */
+.live-badge {
+  background: rgba(214,232,122,0.08);
+  border: 1px solid rgba(214,232,122,0.18);
+  backdrop-filter: blur(8px);
+}
+
+/* ── lime stroke text ── */
+.lime-stroke {
+  -webkit-text-stroke: 2px #d6e87a;
+  color: transparent;
+}
+
+/* ── feature rows ── */
+.feature-row {
+  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(4px);
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+.feature-row:hover {
+  background: rgba(214,232,122,0.06);
+  border-color: rgba(214,232,122,0.15);
+  transform: translateX(4px);
+}
+.feature-icon {
+  background: rgba(214,232,122,0.08);
+  border: 1px solid rgba(214,232,122,0.14);
+  transition: background 0.2s;
+}
+.feature-row:hover .feature-icon { background: rgba(214,232,122,0.14); }
+.check-dot {
+  background: rgba(214,232,122,0.08);
+  border: 1px solid rgba(214,232,122,0.15);
+}
+
+/* ── stats ── */
+.stats-row { border-top: 1px solid rgba(255,255,255,0.06); }
+.stat-item { position: relative; }
+.stat-item::after {
+  content:'';
+  position:absolute;
+  right:-20px; top:10%; height:80%;
+  width:1px;
+  background: rgba(255,255,255,0.07);
+}
+.stat-item:last-child::after { display:none; }
+
+/* ── heading accent ── */
+.heading-accent {
+  background: linear-gradient(90deg, #1e4a49 0%, #3a8a88 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── field ── */
+.r-field {
+  background: white;
+  border: 1.5px solid #e8ede8;
+  border-radius: 1rem;
+  padding: 0.875rem 1.1rem 0.6rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.r-field:focus-within {
+  border-color: #1e4a49;
+  box-shadow: 0 0 0 4px rgba(30,74,73,0.07);
+}
+.r-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #8aaa9a;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+.r-field:focus-within .r-label { color: #1e4a49; }
+
+.input-shell { position: relative; }
+.r-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f2320;
+  outline: none;
+  padding: 0.1rem 0;
+}
+.r-input::placeholder { color: #c4d4cc; }
+.input-bar {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  height: 1.5px;
+  width: 0%;
+  background: linear-gradient(90deg, #1e4a49, #d6e87a);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.input-shell:focus-within .input-bar { width: 100%; }
+
+.eye-toggle {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #b0c4bc;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+  padding: 4px;
+}
+.eye-toggle:hover { color: #1e4a49; }
+
+/* ── submit ── */
+.submit-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 1.05rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 24px rgba(30,74,73,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.submit-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(30,74,73,0.38), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.submit-btn:not(:disabled):hover .btn-arrow { transform: translateX(3px); }
+.submit-btn:not(:disabled):active { transform: translateY(0); }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.submit-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #1e4a49 0%, #2d7a78 50%, #1e4a49 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  transition: background-position 0.5s ease;
+}
+.submit-btn:not(:disabled):hover .submit-bg { background-position: 100% 0%; }
+.submit-glow {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255,255,255,0.14) 0%, transparent 50%);
+}
+.btn-arrow { transition: transform 0.25s ease; }
+
+/* ── roles ── */
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 1.5px solid #edf0ea;
+  border-radius: 1rem;
+  padding: 0.875rem 1rem;
+  cursor: default;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.role-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.07);
+  border-color: #d0dcd0;
+}
+.role-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  width: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.role-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* ── entrance animation ── */
+.anim-in {
+  animation: slide-up 0.65s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes slide-up {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ── autofill ── */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  -webkit-box-shadow: 0 0 0px 1000px #fafbfa inset;
   transition: background-color 5000s ease-in-out 0s;
 }
 </style>

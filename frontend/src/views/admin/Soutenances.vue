@@ -9,6 +9,8 @@ const { items, loading, search, filtered, showModal, editing, form, error, fetch
 const projets = ref([])
 const filterStatut = ref('all')
 const selected = ref(null)
+const noteModal = ref(null)   // soutenance en attente de note
+const noteValue = ref('')
 
 onMounted(async () => {
   await fetchAll()
@@ -54,8 +56,14 @@ const displayList = computed(() => {
 function openDetail(s) { selected.value = s }
 function closeDetail()  { selected.value = null }
 
-async function marquerTerminee(s, e) {
+function marquerTerminee(s, e) {
   e.stopPropagation()
+  noteModal.value = s
+  noteValue.value = s.note_finale ?? ''
+}
+
+async function confirmerTerminee() {
+  const s = noteModal.value
   try {
     await api.put(`/soutenances/${s.id}`, {
       statut: 'terminee',
@@ -63,9 +71,11 @@ async function marquerTerminee(s, e) {
       date: s.date,
       heure: s.heure?.slice(0, 5),
       salle: s.salle,
+      note_finale: noteValue.value !== '' ? noteValue.value : null,
     })
+    noteModal.value = null
     await fetchAll()
-    if (selected.value?.id === s.id) selected.value = { ...selected.value, statut: 'terminee' }
+    if (selected.value?.id === s.id) selected.value = { ...selected.value, statut: 'terminee', note_finale: noteValue.value !== '' ? noteValue.value : null }
   } catch (err) { alert(err.response?.data?.message || 'Erreur') }
 }
 </script>
@@ -294,6 +304,50 @@ async function marquerTerminee(s, e) {
               <p class="text-5xl font-black text-[#1e4a49]">
                 {{ selected.note_finale }}<span class="text-2xl text-slate-400 font-bold">/20</span>
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- NOTE FINALE MODAL -->
+    <Teleport to="body">
+      <div v-if="noteModal" class="fixed inset-0 z-60 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="noteModal = null"></div>
+        <div class="relative z-10 w-full max-w-sm rounded-3xl bg-white shadow-2xl overflow-hidden">
+          <div class="bg-[#1e4a49] px-6 py-5 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-[#d6e87a]">Soutenance terminée</p>
+              <h2 class="mt-0.5 text-base font-black text-white">Saisir la note finale</h2>
+            </div>
+            <button @click="noteModal = null" class="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="p-6 space-y-5">
+            <p class="text-sm text-slate-500 leading-relaxed line-clamp-2">
+              <span class="font-bold text-slate-700">{{ noteModal.projet?.titre }}</span>
+            </p>
+            <div>
+              <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">
+                Note finale <span class="normal-case font-normal">(sur 20)</span>
+              </label>
+              <div class="relative">
+                <input v-model="noteValue" type="number" min="0" max="20" step="0.25" placeholder="ex: 15.5"
+                  class="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-2xl font-black text-[#1e4a49] outline-none focus:border-[#d6e87a] focus:bg-white transition text-center" />
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-300">/20</span>
+              </div>
+              <p class="mt-1.5 text-center text-[11px] text-slate-300">Laissez vide si la note n'est pas encore disponible</p>
+            </div>
+            <div class="flex gap-3">
+              <button @click="noteModal = null"
+                class="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+                Annuler
+              </button>
+              <button @click="confirmerTerminee"
+                class="flex-1 rounded-2xl bg-[#1e4a49] py-3 text-sm font-black text-white hover:bg-[#163938] transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-graduation-cap"></i> Confirmer
+              </button>
             </div>
           </div>
         </div>
