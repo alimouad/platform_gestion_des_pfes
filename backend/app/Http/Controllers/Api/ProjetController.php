@@ -16,7 +16,7 @@ class ProjetController extends CrudController
 
     protected function relations(): array
     {
-        return ['professeur.utilisateur', 'coordinateur.utilisateur', 'anneeUniversitaire', 'postulations.etudiant', 'depots', 'soutenance', 'donneeSpatiale'];
+        return ['professeur.utilisateur', 'coordinateur.utilisateur', 'anneeUniversitaire', 'filiere', 'postulations.etudiant.filiere', 'depots', 'soutenance', 'donneeSpatiale'];
     }
 
     public function index(): JsonResponse
@@ -81,6 +81,7 @@ class ProjetController extends CrudController
             'professeur_id'          => ['required', 'integer', 'exists:professeurs,id'],
             'coordinateur_id'        => ['nullable', 'integer', 'exists:coordinateurs,id'],
             'annee_universitaire_id' => ['required', 'integer', 'exists:annees_universitaires,id'],
+            'filiere_id'             => ['nullable', 'integer', 'exists:filieres,id'],
             'ville'                  => ['nullable', 'string', 'max:255'],
             'latitude'               => ['nullable', 'numeric', 'between:-90,90'],
             'longitude'              => ['nullable', 'numeric', 'between:-180,180'],

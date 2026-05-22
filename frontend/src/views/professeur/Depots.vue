@@ -26,6 +26,16 @@ async function fetchAll() {
   loading.value = false
 }
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const g of studentGroups.value) {
+    const key = g.etudiant?.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(g)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 // Group depots by student
 const studentGroups = computed(() => {
   const groups = {}
@@ -141,10 +151,20 @@ onMounted(fetchAll)
       <p class="text-sm text-slate-400 mt-1">Vos étudiants n'ont pas encore soumis de fichiers.</p>
     </div>
 
-    <!-- Student cards grid -->
-    <div v-else class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <!-- Student cards grid grouped by filière -->
+    <div v-else class="space-y-8">
+      <section v-for="([filiere, groups]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ groups.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       <article
-        v-for="g in studentGroups" :key="g.etudiant?.id"
+        v-for="g in groups" :key="g.etudiant?.id"
         @click="selected = g"
         class="group cursor-pointer flex flex-col rounded-3xl border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden"
       >
@@ -198,6 +218,8 @@ onMounted(fetchAll)
           </div>
         </div>
       </article>
+        </div>
+      </section>
     </div>
 
     <!-- DEPOT DETAIL MODAL -->

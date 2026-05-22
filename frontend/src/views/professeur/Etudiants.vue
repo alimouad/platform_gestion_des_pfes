@@ -65,6 +65,16 @@ const filtered = computed(() => {
   return encadres.value.filter(e => JSON.stringify(e).toLowerCase().includes(q))
 })
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const e of filtered.value) {
+    const key = e.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(e)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 onMounted(fetchAll)
 </script>
 
@@ -96,8 +106,18 @@ onMounted(fetchAll)
       <p class="mt-1 text-sm text-slate-400">Ils apparaîtront ici une fois leur postulation acceptée.</p>
     </div>
 
-    <div v-else class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-      <article v-for="e in filtered" :key="e.id"
+    <div v-else class="space-y-8">
+      <section v-for="([filiere, etudiants]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ etudiants.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <article v-for="e in etudiants" :key="e.id"
         @click="selected = e"
         class="group cursor-pointer rounded-3xl border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden">
 
@@ -130,8 +150,8 @@ onMounted(fetchAll)
             <p class="flex items-center gap-2">
               <i class="fa-solid fa-user-graduate w-4 shrink-0 text-slate-400"></i>
               {{ e.niveau || '—' }}
-              <span v-if="e.filiere" class="text-slate-300">·</span>
-              <span v-if="e.filiere">{{ e.filiere }}</span>
+              <span v-if="e.filiere?.nom" class="text-slate-300">·</span>
+              <span v-if="e.filiere?.nom">{{ e.filiere.nom }}</span>
             </p>
           </div>
 
@@ -160,6 +180,8 @@ onMounted(fetchAll)
           </div>
         </div>
       </article>
+        </div>
+      </section>
     </div>
 
     <!-- DETAIL MODAL -->
@@ -205,9 +227,9 @@ onMounted(fetchAll)
                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Email</p>
                 <p class="text-sm font-bold text-slate-800 break-all">{{ selected.utilisateur?.courriel || '—' }}</p>
               </div>
-              <div v-if="selected.filiere" class="col-span-2 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
+              <div v-if="selected.filiere?.nom" class="col-span-2 rounded-2xl bg-slate-50 border border-slate-100 px-4 py-3">
                 <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Filière</p>
-                <p class="text-sm font-black text-slate-800">{{ selected.filiere }}</p>
+                <p class="text-sm font-black text-slate-800">{{ selected.filiere.nom }}</p>
               </div>
             </div>
 

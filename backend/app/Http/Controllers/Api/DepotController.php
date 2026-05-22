@@ -16,7 +16,7 @@ class DepotController extends CrudController
 
     protected function relations(): array
     {
-        return ['projet', 'etudiant.utilisateur'];
+        return ['projet', 'etudiant.utilisateur', 'etudiant.filiere'];
     }
 
     public function index(): JsonResponse

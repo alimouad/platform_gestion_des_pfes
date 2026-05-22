@@ -15,6 +15,7 @@ const profId = computed(() => user.value?.professeur?.id)
 
 const items = ref([])
 const annees = ref([])
+const filieres = ref([])
 const loading = ref(false)
 const search = ref('')
 const filterStatut = ref('')
@@ -159,6 +160,7 @@ const defaultForm = () => ({
   statut: 'soumis',
   professeur_id: profId.value ?? user.value?.professeur?.id,
   annee_universitaire_id: '',
+  filiere_id: '',
   ville: '', latitude: '', longitude: '',
   zone_etude: null,
 })
@@ -169,12 +171,14 @@ async function fetchAll() {
     const me = await api.get('/me')
     user.value = me.data?.data || {}
     localStorage.setItem('admin_user', JSON.stringify(user.value))
-    const [pr, ar] = await Promise.all([
+    const [pr, ar, fr] = await Promise.all([
       api.get('/projets'),
       api.get('/annees-universitaires').catch(() => ({ data: { data: [] } })),
+      api.get('/filieres').catch(() => ({ data: { data: [] } })),
     ])
     items.value = pr.data.data.filter(p => p.professeur_id === profId.value)
     annees.value = ar.data.data
+    filieres.value = fr.data.data
   } catch {}
   loading.value = false
 }
@@ -187,6 +191,16 @@ const filtered = computed(() => {
   }
   if (filterStatut.value) list = list.filter(p => p.statut === filterStatut.value)
   return list
+})
+
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const p of filtered.value) {
+    const key = p.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(p)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
 })
 
 const mappableProjects = computed(() => filtered.value.filter(p => p.latitude && p.longitude))
@@ -205,6 +219,7 @@ function openEdit(p) {
     titre: p.titre, description: p.description, domaine: p.domaine,
     statut: p.statut, professeur_id: profId.value,
     annee_universitaire_id: p.annee_universitaire_id,
+    filiere_id: p.filiere_id || '',
     ville: p.ville || '', latitude: p.latitude || '', longitude: p.longitude || '',
     zone_etude: p.zone_etude || null,
   }
@@ -499,7 +514,7 @@ onMounted(fetchAll)
 
       <!-- GRID VIEW -->
       <template v-else>
-        <div v-if="filtered.length === 0" class="flex flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-[#d6e87a]/50 bg-white/60 py-20 text-center">
+        <div v-if="filtered.length === 0" class="flex flex-col items-center justify-center rounded-4xl border-2 border-dashed border-[#d6e87a]/50 bg-white/60 py-20 text-center">
           <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#d6e87a]/20">
             <i class="fa-solid fa-folder-open text-3xl text-[#6a8a40]"></i>
           </div>
@@ -510,11 +525,21 @@ onMounted(fetchAll)
           </button>
         </div>
 
-        <div v-else class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        <div v-else class="space-y-8">
+          <section v-for="([filiere, projets]) in groupedByFiliere" :key="filiere">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+                <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+                <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+                <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ projets.length }}</span>
+              </div>
+              <div class="flex-1 h-px bg-slate-200"></div>
+            </div>
+            <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           <article
-            v-for="p in filtered" :key="p.id"
+            v-for="p in projets" :key="p.id"
             @click="openDetail(p)"
-            class="group relative flex flex-col rounded-[2rem] border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden cursor-pointer"
+            class="group relative flex flex-col rounded-4xl border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden cursor-pointer"
           >
             <div class="h-1.5 w-full" :class="statutDot[p.statut] || 'bg-slate-200'"></div>
             <div class="flex flex-1 flex-col p-5">
@@ -551,6 +576,8 @@ onMounted(fetchAll)
               </div>
             </div>
           </article>
+            </div>
+          </section>
         </div>
       </template>
     </template>
@@ -594,12 +621,21 @@ onMounted(fetchAll)
                 </select>
               </div>
             </div>
-            <div>
-              <label class="mb-1.5 block text-xs font-bold text-slate-600">Année universitaire <span class="text-red-400">*</span></label>
-              <select v-model="form.annee_universitaire_id" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition">
-                <option value="">— Sélectionner —</option>
-                <option v-for="a in annees" :key="a.id" :value="a.id">{{ a.annee }}</option>
-              </select>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="mb-1.5 block text-xs font-bold text-slate-600">Année universitaire <span class="text-red-400">*</span></label>
+                <select v-model="form.annee_universitaire_id" required class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition">
+                  <option value="">— Sélectionner —</option>
+                  <option v-for="a in annees" :key="a.id" :value="a.id">{{ a.annee }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1.5 block text-xs font-bold text-slate-600">Filière cible</label>
+                <select v-model="form.filiere_id" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a] transition">
+                  <option value="">— Toutes —</option>
+                  <option v-for="f in filieres" :key="f.id" :value="f.id">{{ f.nom }}</option>
+                </select>
+              </div>
             </div>
             <!-- SIG Location -->
             <div class="rounded-2xl border border-[#d6e87a]/50 bg-[#f0f3eb] p-4 space-y-3">

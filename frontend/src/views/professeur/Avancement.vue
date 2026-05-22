@@ -96,6 +96,16 @@ const typeDepotConfig = {
   presentation: { label: 'Présentation',  icon: 'fa-file-powerpoint', color: 'text-orange-500' },
 }
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const p of projetCards.value) {
+    const key = p.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(p)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 function fmtDate(d) {
   return d ? new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
 }
@@ -132,9 +142,19 @@ onMounted(fetchAll)
       <p class="mt-1 text-sm text-slate-400">Vos projets apparaîtront ici dès qu'ils seront créés.</p>
     </div>
 
-    <!-- Project cards -->
-    <div v-else class="space-y-4">
-      <article v-for="p in projetCards" :key="p.id"
+    <!-- Project cards grouped by filière -->
+    <div v-else class="space-y-8">
+      <section v-for="([filiere, projetsFiliere]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ projetsFiliere.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+        <div class="space-y-4">
+      <article v-for="p in projetsFiliere" :key="p.id"
         @click="selected = p"
         class="group cursor-pointer rounded-3xl border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg overflow-hidden">
 
@@ -230,6 +250,8 @@ onMounted(fetchAll)
           </span>
         </div>
       </article>
+        </div>
+      </section>
     </div>
 
     <!-- DETAIL MODAL -->

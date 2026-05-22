@@ -37,6 +37,16 @@ const filtered = computed(() => {
   return list
 })
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const p of filtered.value) {
+    const key = p.etudiant?.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(p)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 const counts = computed(() => ({
   en_attente: items.value.filter(p => p.statut === 'en_attente').length,
   accepte:    items.value.filter(p => p.statut === 'accepte').length,
@@ -88,39 +98,51 @@ onMounted(fetchAll)
       <option v-for="p in projets" :key="p.id" :value="p.id">{{ p.titre }}</option>
     </select>
 
-    <div v-if="loading" class="rounded-[2rem] border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Chargement…</div>
-    <div v-else-if="filtered.length === 0" class="rounded-[2rem] border-2 border-dashed border-slate-200 bg-white/60 p-10 text-center">
+    <div v-if="loading" class="rounded-4xl border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Chargement…</div>
+    <div v-else-if="filtered.length === 0" class="rounded-4xl border-2 border-dashed border-slate-200 bg-white/60 p-10 text-center">
       <i class="fa-solid fa-file-signature text-5xl text-slate-300"></i>
       <p class="mt-4 text-base font-extrabold text-slate-700">Aucune postulation</p>
       <p class="mt-1 text-sm text-slate-400">Les candidatures à vos projets apparaîtront ici.</p>
     </div>
-    <div v-else class="space-y-3">
-      <article v-for="p in filtered" :key="p.id"
-        class="flex flex-wrap items-center gap-4 rounded-[1.6rem] border border-white/70 bg-white/90 p-5 shadow-sm">
-        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
-          :class="p.statut === 'accepte' ? 'bg-green-100 text-green-700'
-            : p.statut === 'rejete' ? 'bg-red-100 text-red-600'
-            : 'bg-amber-100 text-amber-700'">
-          <i :class="`fa-solid ${statutIcon[p.statut]} text-xl`"></i>
+    <div v-else class="space-y-6">
+      <section v-for="([filiere, posts]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ posts.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
         </div>
-        <div class="flex-1 min-w-[200px]">
-          <p class="text-sm font-bold text-slate-800">
-            {{ p.etudiant?.utilisateur?.prenom }} {{ p.etudiant?.utilisateur?.nom }}
-            <span class="ml-2 text-xs font-mono text-slate-400">{{ p.etudiant?.code_etudiant }}</span>
-          </p>
-          <p class="text-xs text-slate-400 mt-0.5">
-            <i class="fa-solid fa-arrow-right mr-1"></i>{{ p.projet?.titre || '—' }}
-          </p>
-          <p class="mt-1.5 text-[10px] text-slate-400">
-            <i class="fa-regular fa-envelope mr-1"></i>{{ p.etudiant?.utilisateur?.courriel }}
-            <span class="mx-2 text-slate-300">·</span>
-            Postulé le {{ new Date(p.date_candidature || p.created_at).toLocaleDateString('fr-FR') }}
-          </p>
+        <div class="space-y-3">
+          <article v-for="p in posts" :key="p.id"
+            class="flex flex-wrap items-center gap-4 rounded-[1.6rem] border border-white/70 bg-white/90 p-5 shadow-sm">
+            <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+              :class="p.statut === 'accepte' ? 'bg-green-100 text-green-700'
+                : p.statut === 'rejete' ? 'bg-red-100 text-red-600'
+                : 'bg-amber-100 text-amber-700'">
+              <i :class="`fa-solid ${statutIcon[p.statut]} text-xl`"></i>
+            </div>
+            <div class="flex-1 min-w-50">
+              <p class="text-sm font-bold text-slate-800">
+                {{ p.etudiant?.utilisateur?.prenom }} {{ p.etudiant?.utilisateur?.nom }}
+                <span class="ml-2 text-xs font-mono text-slate-400">{{ p.etudiant?.code_etudiant }}</span>
+              </p>
+              <p class="text-xs text-slate-400 mt-0.5">
+                <i class="fa-solid fa-arrow-right mr-1"></i>{{ p.projet?.titre || '—' }}
+              </p>
+              <p class="mt-1.5 text-[10px] text-slate-400">
+                <i class="fa-regular fa-envelope mr-1"></i>{{ p.etudiant?.utilisateur?.courriel }}
+                <span class="mx-2 text-slate-300">·</span>
+                Postulé le {{ new Date(p.date_candidature || p.created_at).toLocaleDateString('fr-FR') }}
+              </p>
+            </div>
+            <span class="rounded-lg px-3 py-1 text-[11px] font-bold" :class="statutColor[p.statut]">
+              {{ statutLabel[p.statut] || p.statut }}
+            </span>
+          </article>
         </div>
-        <span class="rounded-lg px-3 py-1 text-[11px] font-bold" :class="statutColor[p.statut]">
-          {{ statutLabel[p.statut] || p.statut }}
-        </span>
-      </article>
+      </section>
     </div>
   </div>
 </template>

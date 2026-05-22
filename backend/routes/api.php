@@ -57,10 +57,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('statistiques/calculer/{annee}', [StatistiqueController::class, 'calculer']);
     });
 
-    // ── Lecture des années universitaires pour les professeurs ───────────
-    Route::middleware('role:superadmin,coordinateur,professeur')->group(function () {
+    // ── Lecture des années universitaires et filières pour les professeurs ─
+    Route::middleware('role:superadmin,coordinateur,professeur,etudiant')->group(function () {
         Route::get('annees-universitaires', [AnneeUniversitaireController::class, 'index']);
         Route::get('annees-universitaires/{anneeUniversitaire}', [AnneeUniversitaireController::class, 'show']);
+        Route::get('filieres', [FiliereController::class, 'index']);
+        Route::get('filieres/{filiere}', [FiliereController::class, 'show']);
     });
 
     // ── Écriture des années universitaires réservée à l'administration ────

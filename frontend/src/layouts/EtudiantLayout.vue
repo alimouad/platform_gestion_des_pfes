@@ -10,6 +10,7 @@ const user = ref(JSON.parse(localStorage.getItem('admin_user') || '{}'))
 
 const nav = [
   { icon: 'fa-house',          label: 'Accueil',         to: '/etudiant/dashboard' },
+  { icon: 'fa-folder-open',    label: 'Mon projet',      to: '/etudiant/mon-projet' },
   { icon: 'fa-compass',        label: 'Projets',         to: '/etudiant/projets' },
   { icon: 'fa-file-signature', label: 'Mes postulations',to: '/etudiant/postulations' },
   { icon: 'fa-cloud-arrow-up', label: 'Mes dépôts',      to: '/etudiant/depots' },

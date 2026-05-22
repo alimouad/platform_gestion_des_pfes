@@ -6,6 +6,7 @@ use App\Models\AnneeUniversitaire;
 use App\Models\Coordinateur;
 use App\Models\Depot;
 use App\Models\DonneeSpatiale;
+use App\Models\Filiere;
 use App\Models\Postulation;
 use App\Models\Soutenance;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,6 +31,7 @@ class Projet extends Model
         'professeur_id',
         'coordinateur_id',
         'annee_universitaire_id',
+        'filiere_id',
         'ville',
         'latitude',
         'longitude',
@@ -43,6 +45,11 @@ class Projet extends Model
             'date_fin'    => 'date',
             'zone_etude'  => 'array',
         ];
+    }
+
+    public function filiere(): BelongsTo
+    {
+        return $this->belongsTo(Filiere::class);
     }
 
     public function professeur(): BelongsTo

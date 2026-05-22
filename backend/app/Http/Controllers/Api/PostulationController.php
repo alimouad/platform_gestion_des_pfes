@@ -16,7 +16,7 @@ class PostulationController extends CrudController
 
     protected function relations(): array
     {
-        return ['etudiant.utilisateur', 'projet.professeur.utilisateur'];
+        return ['etudiant.utilisateur', 'etudiant.filiere', 'projet.professeur.utilisateur'];
     }
 
     public function index(): JsonResponse

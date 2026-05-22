@@ -28,6 +28,16 @@ const filtered = computed(() => {
   return list
 })
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const p of filtered.value) {
+    const key = p.etudiant?.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(p)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 const counts = computed(() => ({
   en_attente: items.value.filter(p => p.statut === 'en_attente').length,
   accepte:    items.value.filter(p => p.statut === 'accepte').length,
@@ -88,8 +98,18 @@ onMounted(fetchAll)
 
     <div v-if="loading" class="rounded-[2rem] border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Chargement…</div>
     <div v-else-if="filtered.length === 0" class="rounded-[2rem] border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Aucune postulation</div>
-    <div v-else class="space-y-3">
-      <article v-for="p in filtered" :key="p.id"
+    <div v-else class="space-y-6">
+      <section v-for="([filiere, posts]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ posts.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+        <div class="space-y-3">
+      <article v-for="p in posts" :key="p.id"
         class="flex flex-wrap items-center gap-4 rounded-[1.6rem] border border-white/70 bg-white/90 p-5 shadow-sm">
         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#d6e87a] text-sm font-black text-slate-700">
           {{ (p.etudiant?.utilisateur?.prenom || 'E')[0] }}{{ (p.etudiant?.utilisateur?.nom || '')[0] }}
@@ -120,6 +140,8 @@ onMounted(fetchAll)
           </button>
         </div>
       </article>
+        </div>
+      </section>
     </div>
   </div>
 </template>

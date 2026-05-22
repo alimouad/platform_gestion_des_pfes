@@ -33,9 +33,14 @@ async function fetchAll() {
   loading.value = false
 }
 
-// Available projects = soumis or brouillon (not en_cours, valide, soutenu, rejete)
+// Available projects = soumis or brouillon, filtered to student's filière
+const etudiantFiliereId = computed(() => Number(user.value?.etudiant?.filiere_id) || null)
+
 const projetsDisponibles = computed(() => {
   let list = projets.value.filter(p => ['brouillon', 'soumis'].includes(p.statut))
+  if (etudiantFiliereId.value) {
+    list = list.filter(p => Number(p.filiere_id) === etudiantFiliereId.value)
+  }
   if (search.value) {
     const q = search.value.toLowerCase()
     list = list.filter(p => JSON.stringify(p).toLowerCase().includes(q))
@@ -128,10 +133,10 @@ onMounted(async () => { await refreshUser(); await fetchAll() })
             Votre projet PFE a été validé. Vous pouvez continuer à consulter les autres offres, mais les nouvelles postulations sont désormais désactivées.
           </p>
         </div>
-        <button @click="router.push('/mon-projet')" 
-                class="rounded-xl bg-white/10 hover:bg-white/20 px-6 py-3 text-[11px] font-bold uppercase tracking-widest transition-all backdrop-blur-md border border-white/5 whitespace-nowrap">
-          Consulter mon projet
-        </button>
+        <router-link to="/etudiant/mon-projet"
+                class="rounded-xl bg-[#d6e87a] hover:bg-[#c8dc60] px-6 py-3 text-[11px] font-black uppercase tracking-widest transition-all text-[#1e4a49] whitespace-nowrap flex items-center gap-2">
+          <i class="fa-solid fa-folder-open"></i> Consulter mon projet
+        </router-link>
       </div>
     </Transition>
 

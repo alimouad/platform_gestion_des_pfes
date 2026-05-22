@@ -49,6 +49,16 @@ async function rejeter(id) {
   } catch (e) { alert(e.response?.data?.message || 'Erreur') }
 }
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const d of filtered.value) {
+    const key = d.etudiant?.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(d)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 const statutLabel = { en_attente: 'En attente', valide: 'Validé', rejete: 'Rejeté' }
 const statutColor = { en_attente: 'bg-amber-100 text-amber-700', valide: 'bg-green-100 text-green-700', rejete: 'bg-red-100 text-red-600' }
 
@@ -88,15 +98,25 @@ onMounted(fetchAll)
       <input v-model="search" placeholder="Rechercher…" class="flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none" />
     </div>
 
-    <div v-if="loading" class="rounded-[2rem] border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Chargement…</div>
-    <div v-else-if="filtered.length === 0" class="rounded-[2rem] border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Aucun dépôt</div>
-    <div v-else class="space-y-3">
-      <article v-for="d in filtered" :key="d.id"
+    <div v-if="loading" class="rounded-4xl border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Chargement…</div>
+    <div v-else-if="filtered.length === 0" class="rounded-4xl border border-white/70 bg-white/90 p-10 text-center text-sm text-slate-400 shadow-sm">Aucun dépôt</div>
+    <div v-else class="space-y-6">
+      <section v-for="([filiere, depots]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ depots.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+        <div class="space-y-3">
+      <article v-for="d in depots" :key="d.id"
         class="flex flex-wrap items-center gap-4 rounded-[1.6rem] border border-white/70 bg-white/90 p-5 shadow-sm">
         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
           <i :class="`fa-solid ${typeIcon[d.type_depot] || 'fa-file'} text-lg`"></i>
         </div>
-        <div class="flex-1 min-w-[200px]">
+        <div class="flex-1 min-w-50">
           <p class="text-sm font-bold text-slate-800">{{ d.projet?.titre || '—' }}</p>
           <p class="text-xs text-slate-400">
             {{ d.type_depot }} • {{ d.etudiant?.utilisateur?.prenom }} {{ d.etudiant?.utilisateur?.nom }}
@@ -124,6 +144,8 @@ onMounted(fetchAll)
           </button>
         </div>
       </article>
+        </div>
+      </section>
     </div>
   </div>
 </template>

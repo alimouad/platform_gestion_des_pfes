@@ -53,6 +53,16 @@ const displayList = computed(() => {
   return list.slice().sort((a, b) => new Date(a.date) - new Date(b.date))
 })
 
+const groupedByFiliere = computed(() => {
+  const groups = {}
+  for (const s of displayList.value) {
+    const key = s.projet?.filiere?.nom || 'Sans filière'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(s)
+  }
+  return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b))
+})
+
 function openDetail(s) { selected.value = s }
 function closeDetail()  { selected.value = null }
 
@@ -140,9 +150,19 @@ async function confirmerTerminee() {
       <p class="mt-1 text-sm text-slate-400">Planifiez la première soutenance avec le bouton ci-dessus.</p>
     </div>
 
-    <!-- Cards grid -->
-    <div v-else class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-      <article v-for="s in displayList" :key="s.id"
+    <!-- Cards grid grouped by filière -->
+    <div v-else class="space-y-8">
+      <section v-for="([filiere, soutenances]) in groupedByFiliere" :key="filiere">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">
+            <i class="fa-solid fa-layer-group text-[#1e4a49] text-xs"></i>
+            <span class="text-xs font-bold text-[#1e4a49]">{{ filiere }}</span>
+            <span class="rounded-md bg-[#1e4a49] text-[#d6e87a] px-1.5 py-0.5 text-[10px] font-bold">{{ soutenances.length }}</span>
+          </div>
+          <div class="flex-1 h-px bg-slate-200"></div>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <article v-for="s in soutenances" :key="s.id"
         @click="openDetail(s)"
         class="group cursor-pointer rounded-3xl border border-white/70 bg-white/90 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#d6e87a] hover:shadow-xl overflow-hidden">
 
@@ -220,6 +240,8 @@ async function confirmerTerminee() {
           </span>
         </div>
       </article>
+        </div>
+      </section>
     </div>
 
     <!-- DETAIL MODAL -->

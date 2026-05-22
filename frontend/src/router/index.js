@@ -57,6 +57,7 @@ const router = createRouter({
             children: [
                 { path: '', redirect: '/etudiant/dashboard' },
                 { path: 'dashboard',    name: 'etudiant.dashboard',    component: () => import('@/views/etudiant/Dashboard.vue') },
+                { path: 'mon-projet',   name: 'etudiant.mon-projet',   component: () => import('@/views/etudiant/MonProjet.vue') },
                 { path: 'projets',      name: 'etudiant.projets',      component: () => import('@/views/etudiant/Projets.vue') },
                 { path: 'postulations', name: 'etudiant.postulations', component: () => import('@/views/etudiant/Postulations.vue') },
                 { path: 'depots',       name: 'etudiant.depots',       component: () => import('@/views/etudiant/Depots.vue') },
