@@ -15,6 +15,7 @@ const nav = [
   { icon: 'fa-chalkboard-user',    label: 'Professeurs',  to: '/admin/professeurs' },
   { icon: 'fa-folder-open',        label: 'Projets',      to: '/admin/projets' },
   { icon: 'fa-building-columns',   label: 'Départements', to: '/admin/departements' },
+  { icon: 'fa-layer-group',        label: 'Filières',     to: '/admin/filieres' },
   { icon: 'fa-calendar-days',      label: 'Années Univ.', to: '/admin/annees' },
   { icon: 'fa-person-chalkboard',  label: 'Soutenances',  to: '/admin/soutenances' },
   { icon: 'fa-chart-pie',          label: 'Statistiques', to: '/admin/statistiques' },

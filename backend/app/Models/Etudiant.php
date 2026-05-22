@@ -17,9 +17,15 @@ class Etudiant extends Model
         'user_id',
         'code_etudiant',
         'filiere',
+        'filiere_id',
         'niveau',
         'groupe',
     ];
+
+    public function filiere(): BelongsTo
+    {
+        return $this->belongsTo(Filiere::class);
+    }
 
     public function utilisateur(): BelongsTo
     {

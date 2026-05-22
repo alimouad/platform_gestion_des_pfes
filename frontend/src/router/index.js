@@ -27,6 +27,7 @@ const router = createRouter({
                 { path: 'professeurs',  name: 'admin.professeurs',  component: () => import('@/views/admin/Professeurs.vue') },
                 { path: 'projets',      name: 'admin.projets',      component: () => import('@/views/admin/Projets.vue') },
                 { path: 'departements', name: 'admin.departements', component: () => import('@/views/admin/Departements.vue') },
+                { path: 'filieres',     name: 'admin.filieres',     component: () => import('@/views/admin/Filieres.vue') },
                 { path: 'annees',       name: 'admin.annees',       component: () => import('@/views/admin/AnneesUniversitaires.vue') },
                 { path: 'soutenances',  name: 'admin.soutenances',  component: () => import('@/views/admin/Soutenances.vue') },
                 { path: 'statistiques', name: 'admin.statistiques', component: () => import('@/views/admin/Statistiques.vue') },

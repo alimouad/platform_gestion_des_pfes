@@ -1,153 +1,217 @@
-@startuml
+@startuml PFE_Class_Diagram
 
+'=================================================
+' THEME
+'=================================================
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
 skinparam shadowing false
+skinparam roundcorner 15
+skinparam BackgroundColor white
+skinparam ArrowColor #1e4a49
 
-' =========================
+skinparam class {
+    BackgroundColor #FAFAFA
+    BorderColor #1e4a49
+    HeaderBackgroundColor #1e4a49
+    FontColor #FFFFFF
+}
+
+'=================================================
 ' USERS
-' =========================
+'=================================================
 
-abstract class User {
+package "Gestion des Utilisateurs" {
+
+abstract class Utilisateur  {
     +id : bigint
-    +name : string
-    +email : string
-    +password : string
-    +role : string
+    +nom : string
+    +prenom : string
+    +courriel : string
+    -mot_de_passe : string
+    +role : enum
     +created_at : timestamp
     +updated_at : timestamp
+
+    +login()
+    +logout()
 }
 
-class Student {
-    +student_code : string
-    +level : string
-    +group : string
+class Etudiant{
+    +code_etudiant : string
+    +niveau : string
+    +groupe : string
+
+    +postuler()
+    +deposerLivrable()
 }
 
-class Professor {
-    +speciality : string
+class Professeur {
+    +specialite : string
     +grade : string
-    +office : string
+    +bureau : string
+
+    +superviserProjet()
 }
 
-class Coordinator {
-    +office : string
+class Coordinateur{
+    +bureau : string
+
+    +validerProjet()
+    +genererStats()
 }
 
-class Admin {
+Utilisateur <|-- Etudiant
+Utilisateur <|-- Professeur
+Utilisateur <|-- Coordinateur
+
 }
 
-User <|-- Student
-User <|-- Professor
-User <|-- Coordinator
-User <|-- Admin
+'=================================================
+' ACADEMIC STRUCTURE
+'=================================================
 
-' =========================
-' ORGANIZATION
-' =========================
+package "Structure Académique" {
 
-class Department {
+class Departement {
     +id : bigint
-    +name : string
+    +nom : string
     +description : text
 }
 
-class AcademicYear {
+class Filiere {
     +id : bigint
-    +year : string
-    +status : string
+    +nom : string
+    +description : text
 }
 
-Department "1" -- "many" User
-AcademicYear "1" -- "many" Project
-
-' =========================
-' PROJECTS
-' =========================
-
-class Project {
+class AnneeUniversitaire {
     +id : bigint
-    +title : string
+    +annee : string
+    +date_debut : date
+    +date_fin : date
+    +statut : enum
+}
+
+}
+
+'=================================================
+' PROJECT MANAGEMENT
+'=================================================
+
+package "Gestion PFE" {
+
+class Projet{
+    +id : bigint
+    +titre : string
     +description : text
-    +domain : string
-    +status : string
-    +start_date : date
-    +end_date : date
+    +domaine : string
+    +statut : enum
+    +ville : string
+    +latitude : decimal
+    +longitude : decimal
+    +zone_etude : json
+
+    +creer()
+    +modifier()
+    +archiver()
+}
+
+class Postulation {
+    +id : bigint
+    +statut : enum
     +created_at : timestamp
 }
 
-class Application {
+class Depot {
     +id : bigint
-    +status : string
-    +application_date : date
-}
-
-class Submission {
-    +id : bigint
-    +file_path : string
-    +type : string
-    +validation_status : string
-    +submitted_at : timestamp
+    +chemin_fichier : string
+    +type_depot : string
+    +statut_validation : enum
+    +commentaire : text
 }
 
 class Soutenance {
     +id : bigint
     +date : date
-    +time : time
-    +room : string
-    +status : string
-    +final_grade : float
+    +heure : time
+    +salle : string
+    +jury : text
+    +note_finale : decimal
 }
 
-' =========================
-' SIG / GIS
-' =========================
+}
 
-class SpatialData {
+'=================================================
+' GIS MODULE
+'=================================================
+
+package "SIG & Cartographie" {
+
+class DonneeSpatiale {
     +id : bigint
-    +geometry : geometry
+    +nom : string
     +geojson : json
     +surface : float
-    +created_at : timestamp
 }
 
-class MapLayer {
+class CoucheCarte {
     +id : bigint
-    +name : string
-    +type : string
-    +created_at : timestamp
+    +nom : string
+    +type : enum
 }
 
-' =========================
-' DASHBOARD
-' =========================
+}
 
-class Statistics {
+'=================================================
+' COMMUNICATION
+'=================================================
+
+package "Communication & Analytics" {
+
+class Message {
     +id : bigint
-    +total_projects : int
-    +validated_projects : int
-    +projects_by_domain : json
+    +contenu : text
+    +read_at : timestamp
 }
 
-' =========================
+class Statistique {
+    +id : bigint
+    +total_projets : int
+    +projets_valides : int
+    +projets_par_domaine : json
+}
+
+}
+
+'=================================================
 ' RELATIONS
-' =========================
+'=================================================
 
-Professor "1" -- "many" Project : supervises >
-Coordinator "1" -- "many" Project : validates >
-Admin "1" -- "many" User : manages >
+Departement "1" -- "*" Filiere
+Departement "1" -- "*" Utilisateur
 
-Student "1" -- "many" Application
-Project "1" -- "many" Application
+Filiere "1" -- "*" Etudiant
 
-Project "1" -- "many" Submission
-Student "1" -- "many" Submission
+Professeur "1" -- "*" Projet : supervise
+Coordinateur "1" -- "*" Projet : valide
+AnneeUniversitaire "1" -- "*" Projet
 
-Project "1" -- "1" Soutenance
+Etudiant "1" -- "*" Postulation
+Projet "1" -- "*" Postulation
 
-Project "1" -- "1" SpatialData
-SpatialData "1" -- "many" MapLayer
+Etudiant "1" -- "*" Depot
+Projet "1" -- "*" Depot
 
-Coordinator "1" -- "1" Statistics
+Projet "1" -- "0..1" Soutenance
+
+Projet "1" -- "*" DonneeSpatiale
+DonneeSpatiale "1" -- "*" CoucheCarte
+
+Utilisateur "1" --> "*" Message : expéditeur
+Utilisateur "1" --> "*" Message : destinataire
+
+Coordinateur "1" -- "*" Statistique
+AnneeUniversitaire "1" -- "*" Statistique
 
 @enduml

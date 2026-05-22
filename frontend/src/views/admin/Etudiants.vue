@@ -3,15 +3,17 @@ import { onMounted, ref } from 'vue'
 import { useCrud } from '@/composables/useCrud'
 import api from '@/services/api'
 
-const defaultForm = { user_id: '', code_etudiant: '', filiere: '', niveau: 'L3' }
+const defaultForm = { user_id: '', code_etudiant: '', filiere_id: '', niveau: 'L3' }
 const { items, loading, search, filtered, showModal, editing, form, error, fetchAll, save, remove, openCreate, openEdit, closeModal } = useCrud('etudiants', defaultForm)
 
-const users = ref([])
+const users    = ref([])
+const filieres = ref([])
 onMounted(async () => {
   await fetchAll()
   try {
-    const res = await api.get('/users')
-    users.value = res.data.data.filter(u => u.role === 'etudiant')
+    const [u, f] = await Promise.all([api.get('/users'), api.get('/filieres')])
+    users.value    = u.data.data.filter(u => u.role === 'etudiant')
+    filieres.value = f.data.data || []
   } catch {}
 })
 </script>
@@ -60,7 +62,7 @@ onMounted(async () => {
               </div>
             </td>
             <td class="px-4 py-3.5 font-mono text-xs text-slate-600">{{ e.code_etudiant }}</td>
-            <td class="px-4 py-3.5 text-slate-500">{{ e.filiere || '—' }}</td>
+            <td class="px-4 py-3.5 text-slate-500">{{ e.filiere?.nom || '—' }}</td>
             <td class="px-4 py-3.5">
               <span class="rounded-lg bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">{{ e.niveau }}</span>
             </td>
@@ -99,7 +101,10 @@ onMounted(async () => {
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-bold text-slate-600">Filière</label>
-              <input v-model="form.filiere" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a]" />
+              <select v-model="form.filiere_id" class="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-[#d6e87a]">
+                <option value="">— Sélectionner —</option>
+                <option v-for="f in filieres" :key="f.id" :value="f.id">{{ f.nom }}</option>
+              </select>
             </div>
             <div>
               <label class="mb-1.5 block text-xs font-bold text-slate-600">Niveau</label>

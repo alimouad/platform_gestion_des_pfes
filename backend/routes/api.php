@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ProfesseurController;
 use App\Http\Controllers\Api\ProjetController;
 use App\Http\Controllers\Api\SoutenanceController;
 use App\Http\Controllers\Api\StatistiqueController;
+use App\Http\Controllers\Api\FiliereController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::apiResource('users',        UserController::class);
         Route::apiResource('departements', DepartementController::class);
+        Route::apiResource('filieres', FiliereController::class);
     });
 
     // ── Soutenance read for all authenticated users ───────────────────────
