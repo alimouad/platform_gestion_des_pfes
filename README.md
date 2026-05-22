@@ -66,10 +66,7 @@ docker compose up -d
 | Frontend Vue | http://localhost:5173 |
 | pgAdmin | http://localhost:5050 |
 
-### Identifiants pgAdmin
-- Email : `mouad@gmail.com`
-- Mot de passe : `mouad`
-- Connexion BDD : host `postgres`, port `5432`, user/pass `mouad`
+
 
 ---
 
