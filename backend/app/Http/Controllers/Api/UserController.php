@@ -87,4 +87,22 @@ class UserController extends CrudController
             'data' => $request->user()->load($this->relations()),
         ]);
     }
+
+    public function changePassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'current_password' => ['required', 'string'],
+            'new_password'     => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = $request->user();
+
+        if (!\Illuminate\Support\Facades\Hash::check($data['current_password'], $user->mot_de_passe)) {
+            return response()->json(['message' => 'Mot de passe actuel incorrect.'], 422);
+        }
+
+        $user->update(['mot_de_passe' => \Illuminate\Support\Facades\Hash::make($data['new_password'])]);
+
+        return response()->json(['message' => 'Mot de passe mis à jour avec succès.']);
+    }
 }

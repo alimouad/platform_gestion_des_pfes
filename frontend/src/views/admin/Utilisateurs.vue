@@ -19,6 +19,31 @@ function downloadTemplate() {
   window.open(`${api.defaults.baseURL}/import-users/template`, '_blank')
 }
 
+function copyCredentials() {
+  if (!importResult.value?.users?.length) return
+  const text = importResult.value.users
+    .map(u => `${u.prenom} ${u.nom} | ${u.courriel} | ${u.password}`)
+    .join('\n')
+  navigator.clipboard.writeText(text)
+  alert('Credentials copiés dans le presse-papiers !')
+}
+
+function exportCredentialsCsv() {
+  if (!importResult.value?.users?.length) return
+  const rows = [
+    ['Prénom', 'Nom', 'Email', 'Rôle', 'Mot de passe temporaire'],
+    ...importResult.value.users.map(u => [u.prenom, u.nom, u.courriel, u.role, u.password])
+  ]
+  const csv = rows.map(r => r.join(',')).join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href = url
+  a.download = 'credentials_import.csv'
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 async function handleImport() {
   if (!importFile.value) return
   importing.value = true
@@ -254,9 +279,21 @@ const roleLabel = {
                 </div>
                 <!-- Credentials table -->
                 <div v-if="importResult.users?.length" class="mt-3">
-                  <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                    Mots de passe temporaires — à communiquer aux utilisateurs
-                  </p>
+                  <div class="flex items-center justify-between mb-2">
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                      Mots de passe temporaires
+                    </p>
+                    <div class="flex gap-2">
+                      <button @click="copyCredentials"
+                        class="flex items-center gap-1.5 rounded-xl bg-slate-100 px-3 py-1.5 text-[10px] font-black text-slate-600 hover:bg-slate-200 transition">
+                        <i class="fa-solid fa-copy text-[9px]"></i> Copier tout
+                      </button>
+                      <button @click="exportCredentialsCsv"
+                        class="flex items-center gap-1.5 rounded-xl bg-[#1e4a49] px-3 py-1.5 text-[10px] font-black text-[#d6e87a] hover:bg-[#163836] transition">
+                        <i class="fa-solid fa-file-csv text-[9px]"></i> Exporter CSV
+                      </button>
+                    </div>
+                  </div>
                   <div class="max-h-40 overflow-y-auto rounded-xl border border-green-200 bg-white">
                     <table class="w-full text-xs">
                       <thead class="bg-slate-50">

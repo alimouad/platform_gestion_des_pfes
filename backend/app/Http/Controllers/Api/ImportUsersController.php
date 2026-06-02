@@ -88,10 +88,12 @@ class ImportUsersController extends Controller
                 if ($filiere) {
                     $filiereId = Filiere::whereRaw('LOWER(nom) = ?', [strtolower($filiere)])->value('id');
                 }
+                $code = 'ETU-' . strtoupper(Str::random(6));
                 Etudiant::create([
-                    'user_id'    => $user->id,
-                    'filiere_id' => $filiereId,
-                    'niveau'     => 'Master',
+                    'user_id'       => $user->id,
+                    'filiere_id'    => $filiereId,
+                    'niveau'        => 'Master',
+                    'code_etudiant' => $code,
                 ]);
             } elseif ($role === 'professeur') {
                 Professeur::create(['user_id' => $user->id]);

@@ -40,6 +40,31 @@ const memberSince = computed(() => {
   return new Date(user.value.created_at).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })
 })
 
+// ── Changement de mot de passe ───────────────────────────────
+const pwForm = ref({ current_password: '', new_password: '', new_password_confirmation: '' })
+const pwLoading = ref(false)
+const pwError   = ref('')
+const pwSuccess = ref('')
+const showPw    = ref({ current: false, new: false, confirm: false })
+
+async function changePassword() {
+  pwError.value   = ''
+  pwSuccess.value = ''
+  if (pwForm.value.new_password !== pwForm.value.new_password_confirmation) {
+    pwError.value = 'Les mots de passe ne correspondent pas.'
+    return
+  }
+  pwLoading.value = true
+  try {
+    await api.put('/me/password', pwForm.value)
+    pwSuccess.value = 'Mot de passe mis à jour avec succès !'
+    pwForm.value = { current_password: '', new_password: '', new_password_confirmation: '' }
+  } catch (e) {
+    pwError.value = e.response?.data?.message || 'Erreur lors de la mise à jour.'
+  }
+  pwLoading.value = false
+}
+
 onMounted(refresh)
 </script>
 
@@ -146,6 +171,69 @@ onMounted(refresh)
           <dd class="col-span-2 text-sm font-bold text-slate-800 capitalize">{{ memberSince }}</dd>
         </div>
       </dl>
+    </article>
+
+    <!-- Change password -->
+    <article class="rounded-[2rem] border border-white/70 bg-white/90 shadow-sm overflow-hidden">
+      <div class="px-6 pt-5 pb-3 flex items-center gap-3">
+        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#1e4a49]">
+          <i class="fa-solid fa-lock text-[#d6e87a] text-sm"></i>
+        </div>
+        <div>
+          <p class="text-base font-extrabold text-slate-900">Changer mon mot de passe</p>
+          <p class="text-xs text-slate-400">Choisissez un mot de passe sécurisé d'au moins 8 caractères</p>
+        </div>
+      </div>
+      <form @submit.prevent="changePassword" class="px-6 pb-6 space-y-4 mt-2">
+        <div v-if="pwError" class="flex items-center gap-2 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-600">
+          <i class="fa-solid fa-circle-exclamation shrink-0"></i> {{ pwError }}
+        </div>
+        <div v-if="pwSuccess" class="flex items-center gap-2 rounded-2xl bg-green-50 border border-green-100 px-4 py-3 text-sm text-green-700">
+          <i class="fa-solid fa-circle-check shrink-0"></i> {{ pwSuccess }}
+        </div>
+        <div>
+          <label class="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-400">Mot de passe actuel</label>
+          <div class="relative">
+            <input v-model="pwForm.current_password" :type="showPw.current ? 'text' : 'password'" required
+              class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm outline-none focus:border-[#1e4a49] focus:bg-white transition" />
+            <button type="button" @click="showPw.current = !showPw.current"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition">
+              <i :class="showPw.current ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-400">Nouveau mot de passe</label>
+          <div class="relative">
+            <input v-model="pwForm.new_password" :type="showPw.new ? 'text' : 'password'" required minlength="8"
+              class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm outline-none focus:border-[#1e4a49] focus:bg-white transition" />
+            <button type="button" @click="showPw.new = !showPw.new"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition">
+              <i :class="showPw.new ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+            </button>
+          </div>
+        </div>
+        <div>
+          <label class="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-400">Confirmer le mot de passe</label>
+          <div class="relative">
+            <input v-model="pwForm.new_password_confirmation" :type="showPw.confirm ? 'text' : 'password'" required
+              class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pr-11 text-sm outline-none focus:border-[#1e4a49] focus:bg-white transition"
+              :class="pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation ? 'border-red-300' : ''" />
+            <button type="button" @click="showPw.confirm = !showPw.confirm"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition">
+              <i :class="showPw.confirm ? 'fa-regular fa-eye-slash' : 'fa-regular fa-eye'"></i>
+            </button>
+          </div>
+          <p v-if="pwForm.new_password_confirmation && pwForm.new_password !== pwForm.new_password_confirmation"
+            class="mt-1 text-[11px] text-red-500">Les mots de passe ne correspondent pas</p>
+        </div>
+        <button type="submit" :disabled="pwLoading"
+          class="w-full rounded-2xl bg-[#1e4a49] py-3 text-sm font-black text-white hover:bg-[#163836] transition flex items-center justify-center gap-2 disabled:opacity-50">
+          <i v-if="pwLoading" class="fa-solid fa-circle-notch fa-spin"></i>
+          <i v-else class="fa-solid fa-key"></i>
+          {{ pwLoading ? 'Mise à jour…' : 'Mettre à jour le mot de passe' }}
+        </button>
+      </form>
     </article>
 
     <!-- Help card -->
