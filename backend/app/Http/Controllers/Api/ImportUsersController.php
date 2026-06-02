@@ -22,8 +22,7 @@ class ImportUsersController extends Controller
             'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:5120'],
         ]);
 
-        $path = $request->file('file')->store('imports');
-        $fullPath = storage_path('app/' . $path);
+        $fullPath = $request->file('file')->getRealPath();
 
         try {
             $spreadsheet = IOFactory::load($fullPath);
