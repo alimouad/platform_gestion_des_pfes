@@ -2,6 +2,9 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@/services/api'
+import { Doughnut, Bar } from 'vue-chartjs'
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from 'chart.js'
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title)
 
 const router = useRouter()
 const loading = ref(true)
@@ -13,21 +16,6 @@ const soutenances = ref([])
 const annees = ref([])
 
 // Vibrant palette matching the OAK design system
-const domaineColors = ['#d6e87a', '#a8c47c', '#7aab7c', '#4a8c6c', '#1a6c5c', '#f0cc7d', '#e8a87a']
-
-const projetsParDomaine = computed(() => {
-  if (!projets.value.length) return []
-  const map = {}
-  projets.value.forEach(p => { map[p.domaine] = (map[p.domaine] || 0) + 1 })
-  const total = projets.value.length
-  
-  return Object.entries(map).map(([label, count], i) => ({
-    label, 
-    count,
-    pct: Math.round((count / total) * 100),
-    color: domaineColors[i % domaineColors.length],
-  })).sort((a, b) => b.count - a.count)
-})
 
 const projetsParStatut = computed(() => {
   const map = { brouillon: 0, soumis: 0, en_cours: 0, valide: 0, soutenu: 0, rejete: 0 }
@@ -89,6 +77,51 @@ async function fetchAll() {
 }
 
 onMounted(fetchAll)
+
+// ── Chart data ───────────────────────────────────────────────
+const domaineChartData = computed(() => {
+  const map = {}
+  projets.value.forEach(p => { if (p.domaine) map[p.domaine] = (map[p.domaine] || 0) + 1 })
+  const labels = Object.keys(map)
+  const palette = ['#d6e87a','#1e4a49','#4a8c6c','#7aab7c','#a8c47c','#f0cc7d','#e8a87a','#7c3aed','#0284c7']
+  return {
+    labels,
+    datasets: [{ data: Object.values(map), backgroundColor: palette.slice(0, labels.length), borderWidth: 0, hoverOffset: 6 }]
+  }
+})
+
+const statutChartData = computed(() => {
+  const s = projetsParStatut.value
+  const labels = ['Brouillon','Soumis','En cours','Validé','Soutenu','Rejeté']
+  const data   = [s.brouillon, s.soumis, s.en_cours, s.valide, s.soutenu, s.rejete]
+  const colors = ['#94a3b8','#60a5fa','#fbbf24','#34d399','#d6e87a','#f87171']
+  return {
+    labels,
+    datasets: [{
+      label: 'Projets',
+      data,
+      backgroundColor: colors,
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  }
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { position: 'bottom', labels: { font: { size: 11, weight: 'bold' }, padding: 16, boxWidth: 12 } } },
+}
+
+const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+    y: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { font: { size: 10 }, stepSize: 1 } }
+  }
+}
 </script>
 
 <template>
@@ -164,58 +197,28 @@ onMounted(fetchAll)
         </div>
 
         <div class="grid gap-6 md:grid-cols-2">
-          <!-- Thematic Distribution -->
+          <!-- Donut chart: Domaines -->
           <article class="rounded-[2.5rem] bg-white p-8 shadow-sm border border-slate-100">
-            <div class="mb-6">
+            <div class="mb-5">
               <h3 class="text-xl font-black text-slate-800">Domaines</h3>
               <p class="text-xs font-medium text-slate-400">Répartition des sujets de recherche</p>
             </div>
-            
-            <div v-if="projetsParDomaine.length" class="flex flex-col items-center gap-8 lg:flex-row">
-              <div class="relative shrink-0 scale-110">
-                <div class="h-36 w-36 rounded-full transition-transform duration-1000" :style="{
-                  background: `conic-gradient(${projetsParDomaine.map((d,i) => {
-                    const prev = projetsParDomaine.slice(0,i).reduce((a,b)=>a+b.pct,0)
-                    return `${d.color} ${prev}% ${prev+d.pct}%`
-                  }).join(', ')})`
-                }"></div>
-                <div class="absolute inset-0 m-auto flex h-[70%] w-[70%] flex-col items-center justify-center rounded-full bg-white shadow-inner">
-                  <span class="text-2xl font-black text-slate-800">{{ stats.projets }}</span>
-                  <span class="text-[8px] font-bold uppercase tracking-widest text-slate-400">Projets</span>
-                </div>
-              </div>
-              <div class="grid flex-1 grid-cols-1 gap-3 w-full">
-                <div v-for="d in projetsParDomaine" :key="d.label" class="flex items-center group">
-                  <span class="mr-3 h-3 w-3 rounded-full shrink-0 shadow-sm" :style="{background: d.color}"></span>
-                  <span class="truncate text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{{ d.label }}</span>
-                  <div class="ml-auto flex items-center gap-2">
-                    <span class="text-[10px] font-black text-slate-800">{{ d.pct }}%</span>
-                  </div>
-                </div>
-              </div>
+            <div v-if="domaineChartData.labels.length" style="height:220px">
+              <Doughnut :data="domaineChartData" :options="chartOptions" />
             </div>
-            <div v-else class="flex h-48 items-center justify-center text-sm text-slate-400 italic">
+            <div v-else class="flex h-52 items-center justify-center text-sm text-slate-400 italic">
               Données insuffisantes
             </div>
           </article>
 
-          <!-- Project State Progress -->
+          <!-- Bar chart: Statuts -->
           <article class="rounded-[2.5rem] bg-white p-8 shadow-sm border border-slate-100">
-            <h3 class="text-xl font-black text-slate-800">Progression</h3>
-            <p class="mb-8 text-xs font-medium text-slate-400">État d'avancement global</p>
-            
-            <div class="space-y-5">
-              <div v-for="(count, statut) in projetsParStatut" :key="statut">
-                <div class="mb-1.5 flex justify-between px-1">
-                  <span class="text-[10px] font-black uppercase text-slate-500">{{ statutLabel[statut] }}</span>
-                  <span class="text-[10px] font-black text-slate-900">{{ count }}</span>
-                </div>
-                <div class="h-2 w-full overflow-hidden rounded-full bg-slate-50">
-                  <div class="h-full rounded-full bg-[#d6e87a] transition-all duration-1000 ease-out"
-                       :style="{ width: stats.projets ? `${(count/stats.projets)*100}%` : '0%' }">
-                  </div>
-                </div>
-              </div>
+            <div class="mb-5">
+              <h3 class="text-xl font-black text-slate-800">Statuts</h3>
+              <p class="text-xs font-medium text-slate-400">Projets par état d'avancement</p>
+            </div>
+            <div style="height:220px">
+              <Bar :data="statutChartData" :options="barOptions" />
             </div>
           </article>
         </div>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Message;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,11 @@ class MessageController extends Controller
             'body'         => $data['body'],
         ]);
 
-        return response()->json(['data' => $message->load(['from', 'to'])], 201);
+        $message->load(['from', 'to']);
+        $senderName = trim(($message->from->prenom ?? '') . ' ' . ($message->from->nom ?? ''));
+        NotificationService::messageRecu($data['to_user_id'], $senderName);
+
+        return response()->json(['data' => $message], 201);
     }
 
     // GET /messages/contacts — list all contacts (conversations) with unread count

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Soutenance;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -59,8 +60,14 @@ class SoutenanceController extends CrudController
         ]);
 
         $record = $this->query()->findOrFail($id);
+        $wasPlanned = $record->statut === 'planifiee';
         $record->fill($validated)->save();
 
-        return response()->json(['data' => $record->fresh($this->relations())]);
+        $fresh = $record->fresh($this->relations());
+        if (!$wasPlanned && $fresh->statut === 'planifiee') {
+            NotificationService::soutenancePlanifiee($fresh);
+        }
+
+        return response()->json(['data' => $fresh]);
     }
 }

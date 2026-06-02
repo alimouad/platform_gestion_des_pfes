@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '@/services/api'
+import { exportPdf } from '@/composables/usePdf'
 
 const user = ref(JSON.parse(localStorage.getItem('admin_user') || '{}'))
 const etudiantId = computed(() => user.value?.etudiant?.id)
@@ -128,6 +129,10 @@ onMounted(fetchAll)
         <div class="relative">
           <p class="text-[11px] font-black uppercase tracking-widest text-[#d6e87a]">Mon projet PFE</p>
           <h1 class="mt-1 text-2xl font-black leading-snug">{{ projet.titre }}</h1>
+          <button @click="exportPdf('mon-projet-pdf', `fiche-pfe-${projet.titre}.pdf`)"
+            class="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/20 px-4 py-2 text-xs font-black text-white hover:bg-white/20 transition">
+            <i class="fa-solid fa-file-pdf text-[#d6e87a]"></i> Exporter en PDF
+          </button>
           <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-white/60">
             <span v-if="projet.domaine" class="flex items-center gap-1.5">
               <i class="fa-solid fa-tag text-[#d6e87a]"></i>{{ projet.domaine }}
@@ -162,7 +167,7 @@ onMounted(fetchAll)
       </div>
 
       <!-- Info grid -->
-      <div class="grid gap-5 md:grid-cols-2">
+      <div id="mon-projet-pdf" class="grid gap-5 md:grid-cols-2">
 
         <!-- Project details -->
         <div class="rounded-3xl border border-white/70 bg-white/90 shadow-sm p-6 space-y-4">

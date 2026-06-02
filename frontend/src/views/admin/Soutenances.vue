@@ -2,6 +2,7 @@
 import { onMounted, ref, computed } from 'vue'
 import { useCrud } from '@/composables/useCrud'
 import api from '@/services/api'
+import { exportPdf } from '@/composables/usePdf'
 
 const defaultForm = { projet_id: '', date: '', heure: '', salle: '', statut: 'planifiee', jury: '', note_finale: '' }
 const { items, loading, search, filtered, showModal, editing, form, error, fetchAll, save, remove, openCreate, openEdit, closeModal } = useCrud('soutenances', defaultForm)
@@ -104,7 +105,11 @@ async function confirmerTerminee() {
           <h1 class="mt-1 text-2xl font-black">Soutenances PFE</h1>
           <p class="mt-1 text-sm text-white/60">{{ counts.total }} soutenance{{ counts.total !== 1 ? 's' : '' }} enregistrée{{ counts.total !== 1 ? 's' : '' }}</p>
         </div>
-        <button @click="openCreate"
+        <button @click="exportPdf('soutenances-list', 'soutenances.pdf')"
+        class="flex items-center gap-2 rounded-2xl border border-[#d6e87a]/40 bg-[#d6e87a]/10 px-5 py-3 text-sm font-black text-[#d6e87a] hover:bg-[#d6e87a]/20 transition">
+        <i class="fa-solid fa-file-pdf"></i> Export PDF
+      </button>
+      <button @click="openCreate"
           class="flex items-center gap-2 rounded-2xl bg-[#d6e87a] px-6 py-3 text-sm font-black text-[#1e4a49] shadow-lg hover:brightness-105 transition-all active:scale-95">
           <i class="fa-solid fa-plus"></i> Planifier une soutenance
         </button>
@@ -151,7 +156,7 @@ async function confirmerTerminee() {
     </div>
 
     <!-- Cards grid grouped by filière -->
-    <div v-else class="space-y-8">
+    <div v-else id="soutenances-list" class="space-y-8">
       <section v-for="([filiere, soutenances]) in groupedByFiliere" :key="filiere">
         <div class="flex items-center gap-3 mb-4">
           <div class="flex items-center gap-2 rounded-2xl bg-[#1e4a49]/10 px-4 py-1.5">

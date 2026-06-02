@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import api, { clearAuthToken } from '@/services/api'
+import NotificationBell from '@/components/NotificationBell.vue'
 
 const router = useRouter()
 const route  = useRoute()
@@ -89,9 +90,7 @@ async function logout() {
           </div>
         </div>
         <div class="flex items-center gap-3">
-          <button class="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50">
-            <i class="fa-regular fa-bell text-sm"></i>
-          </button>
+          <NotificationBell variant="light" />
           <div class="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-1.5">
             <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-[#d6e87a] text-xs font-black text-slate-700">
               {{ (user.prenom || 'A')[0] }}{{ (user.nom || 'D')[0] }}

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Postulation;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -109,13 +110,18 @@ class PostulationController extends CrudController
             ->where('statut', 'en_attente')
             ->update(['statut' => 'rejete']);
 
+        $postulation->load($this->relations());
+        NotificationService::postulationAcceptee($postulation);
+
         return response()->json(['data' => $postulation->fresh($this->relations())]);
     }
 
     public function rejeter(int $id): JsonResponse
     {
         $postulation = Postulation::findOrFail($id);
+        $postulation->load($this->relations());
         $postulation->update(['statut' => 'rejete']);
+        NotificationService::postulationRejetee($postulation);
 
         return response()->json(['data' => $postulation->fresh($this->relations())]);
     }

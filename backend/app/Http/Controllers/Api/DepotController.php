@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Depot;
+use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,6 +56,8 @@ class DepotController extends CrudController
         }
 
         $depot->update(['statut_validation' => 'valide', 'commentaire' => null]);
+        $depot->load($this->relations());
+        NotificationService::depotValide($depot);
 
         return response()->json(['data' => $depot->fresh($this->relations())]);
     }
@@ -70,6 +73,8 @@ class DepotController extends CrudController
         }
 
         $depot->update(['statut_validation' => 'rejete', 'commentaire' => $data['commentaire'] ?? null]);
+        $depot->load($this->relations());
+        NotificationService::depotRejete($depot);
 
         return response()->json(['data' => $depot->fresh($this->relations())]);
     }

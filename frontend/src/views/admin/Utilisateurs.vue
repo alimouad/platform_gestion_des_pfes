@@ -1,16 +1,43 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useCrud } from '@/composables/useCrud'
+import api from '@/services/api'
 
 const defaultForm = { nom: '', prenom: '', courriel: '', mot_de_passe: '', role: 'etudiant', departement_id: '' }
 const { items, loading, search, filtered, showModal, editing, form, error, fetchAll, save, remove, openCreate, openEdit, closeModal } = useCrud('users', defaultForm)
 const currentUserId = JSON.parse(localStorage.getItem('admin_user') || '{}')?.id
 
 const departements = ref([])
+
+// ── Import Excel ─────────────────────────────────────────────
+const showImport = ref(false)
+const importFile  = ref(null)
+const importing   = ref(false)
+const importResult = ref(null)
+
+function downloadTemplate() {
+  window.open(`${api.defaults.baseURL}/import-users/template`, '_blank')
+}
+
+async function handleImport() {
+  if (!importFile.value) return
+  importing.value = true
+  importResult.value = null
+  try {
+    const fd = new FormData()
+    fd.append('file', importFile.value)
+    const res = await api.post('/import-users', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    importResult.value = res.data
+    await fetchAll()
+  } catch (e) {
+    importResult.value = { error: e.response?.data?.message || 'Erreur lors de l\'import' }
+  }
+  importing.value = false
+}
+
 onMounted(async () => {
   await fetchAll()
   try {
-    const { default: api } = await import('@/services/api')
     const res = await api.get('/departements')
     departements.value = res.data.data
   } catch {}
@@ -38,9 +65,15 @@ const roleLabel = {
         <h1 class="text-2xl font-extrabold text-slate-900">Utilisateurs</h1>
         <p class="text-sm text-slate-400">Gestion des comptes utilisateurs</p>
       </div>
-      <button @click="openCreate" class="flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-700 transition">
-        <i class="fa-solid fa-plus"></i> Nouvel utilisateur
-      </button>
+      <div class="flex gap-2">
+        <button @click="showImport = true"
+          class="flex items-center gap-2 rounded-2xl border border-[#1e4a49] bg-[#f0f3eb] px-5 py-2.5 text-sm font-bold text-[#1e4a49] hover:bg-[#d6e87a] transition">
+          <i class="fa-solid fa-file-excel"></i> Importer Excel
+        </button>
+        <button @click="openCreate" class="flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-slate-700 transition">
+          <i class="fa-solid fa-plus"></i> Nouvel utilisateur
+        </button>
+      </div>
     </div>
 
     <!-- Search -->
@@ -149,6 +182,124 @@ const roleLabel = {
               <button type="submit" class="flex-1 rounded-xl bg-slate-900 py-2.5 text-sm font-bold text-white hover:bg-slate-700 transition">Enregistrer</button>
             </div>
           </form>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- ── Import Excel Modal ── -->
+    <Teleport to="body">
+      <div v-if="showImport" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden">
+
+          <!-- Header -->
+          <div class="bg-[#1e4a49] px-6 py-5 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-[#d6e87a]">Import en masse</p>
+              <h2 class="text-base font-black text-white">Importer des utilisateurs</h2>
+            </div>
+            <button @click="showImport = false; importResult = null; importFile = null"
+              class="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-5">
+
+            <!-- Instructions -->
+            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-4 space-y-2">
+              <p class="text-xs font-black text-slate-700">Format du fichier Excel (.xlsx)</p>
+              <div class="grid grid-cols-3 gap-1 text-[10px] font-bold text-slate-500">
+                <span class="rounded-lg bg-white border border-slate-200 px-2 py-1">A — Nom</span>
+                <span class="rounded-lg bg-white border border-slate-200 px-2 py-1">B — Prénom</span>
+                <span class="rounded-lg bg-white border border-slate-200 px-2 py-1">C — Email</span>
+                <span class="rounded-lg bg-white border border-slate-200 px-2 py-1">D — Rôle</span>
+                <span class="rounded-lg bg-white border border-slate-200 px-2 py-1">E — Filière</span>
+                <span class="rounded-lg bg-white border border-slate-200 px-2 py-1">F — Département</span>
+              </div>
+              <p class="text-[10px] text-slate-400">Rôles valides : <code class="bg-slate-100 px-1 rounded">etudiant</code> <code class="bg-slate-100 px-1 rounded">professeur</code> <code class="bg-slate-100 px-1 rounded">coordinateur</code></p>
+              <button @click="downloadTemplate"
+                class="flex items-center gap-2 text-xs font-black text-[#1e4a49] hover:underline">
+                <i class="fa-solid fa-download text-[#d6e87a]"></i> Télécharger le template Excel
+              </button>
+            </div>
+
+            <!-- File input -->
+            <div>
+              <label class="mb-2 block text-[11px] font-black uppercase tracking-widest text-slate-400">Fichier Excel</label>
+              <input type="file" accept=".xlsx,.xls,.csv"
+                @change="e => importFile = e.target.files[0]"
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-[#1e4a49] file:px-4 file:py-1.5 file:text-xs file:font-black file:text-white hover:file:bg-[#163836] transition" />
+            </div>
+
+            <!-- Result -->
+            <div v-if="importResult" class="rounded-2xl border p-4 space-y-3"
+              :class="importResult.error ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'">
+              <div v-if="importResult.error" class="text-sm font-bold text-red-600">
+                <i class="fa-solid fa-circle-exclamation mr-2"></i>{{ importResult.error }}
+              </div>
+              <template v-else>
+                <div class="flex items-center gap-4">
+                  <div class="text-center">
+                    <p class="text-2xl font-black text-green-700">{{ importResult.created }}</p>
+                    <p class="text-[10px] font-bold text-green-600 uppercase">Créés</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-2xl font-black text-slate-500">{{ importResult.skipped }}</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase">Ignorés</p>
+                  </div>
+                  <div class="text-center">
+                    <p class="text-2xl font-black text-red-500">{{ importResult.errors?.length }}</p>
+                    <p class="text-[10px] font-bold text-red-400 uppercase">Erreurs</p>
+                  </div>
+                </div>
+                <!-- Credentials table -->
+                <div v-if="importResult.users?.length" class="mt-3">
+                  <p class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                    Mots de passe temporaires — à communiquer aux utilisateurs
+                  </p>
+                  <div class="max-h-40 overflow-y-auto rounded-xl border border-green-200 bg-white">
+                    <table class="w-full text-xs">
+                      <thead class="bg-slate-50">
+                        <tr>
+                          <th class="px-3 py-2 text-left font-black text-slate-500">Nom</th>
+                          <th class="px-3 py-2 text-left font-black text-slate-500">Email</th>
+                          <th class="px-3 py-2 text-left font-black text-slate-500">Mot de passe</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="u in importResult.users" :key="u.courriel" class="border-t border-slate-100">
+                          <td class="px-3 py-1.5 font-semibold text-slate-700">{{ u.prenom }} {{ u.nom }}</td>
+                          <td class="px-3 py-1.5 text-slate-500">{{ u.courriel }}</td>
+                          <td class="px-3 py-1.5 font-mono font-bold text-[#1e4a49]">{{ u.password }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <!-- Errors -->
+                <div v-if="importResult.errors?.length" class="mt-2 space-y-1">
+                  <p class="text-[10px] font-black uppercase tracking-widest text-red-500">Erreurs</p>
+                  <p v-for="e in importResult.errors" :key="e" class="text-xs text-red-600">• {{ e }}</p>
+                </div>
+              </template>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3">
+              <button @click="showImport = false; importResult = null; importFile = null"
+                class="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+                Fermer
+              </button>
+              <button @click="handleImport" :disabled="!importFile || importing"
+                class="flex-2 rounded-2xl py-3 text-sm font-black text-white transition flex items-center justify-center gap-2"
+                :class="importFile && !importing ? 'bg-[#1e4a49] hover:bg-[#163836]' : 'bg-slate-200 text-slate-400 cursor-not-allowed'">
+                <i v-if="importing" class="fa-solid fa-circle-notch fa-spin"></i>
+                <i v-else class="fa-solid fa-file-import"></i>
+                {{ importing ? 'Import en cours…' : 'Lancer l\'import' }}
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
     </Teleport>

@@ -16,6 +16,8 @@ use App\Http\Controllers\Api\SoutenanceController;
 use App\Http\Controllers\Api\StatistiqueController;
 use App\Http\Controllers\Api\FiliereController;
 use App\Http\Controllers\Api\MessageController;
+use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ImportUsersController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -38,6 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users',        UserController::class);
         Route::apiResource('departements', DepartementController::class);
         Route::apiResource('filieres', FiliereController::class);
+        Route::post('import-users',          [ImportUsersController::class, 'import']);
+        Route::get('import-users/template',  [ImportUsersController::class, 'template']);
     });
 
     // ── Soutenance read for all authenticated users ───────────────────────
@@ -102,6 +106,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('couches-cartes',    CoucheCarteController::class);
     Route::post('sig/upload',              [FichierSigController::class, 'upload']);
     Route::get('sig/projet/{projetId}',    [FichierSigController::class, 'show']);
+
+    // ── Notifications ─────────────────────────────────────────
+    Route::get('notifications',              [NotificationController::class, 'index']);
+    Route::post('notifications/{id}/read',   [NotificationController::class, 'markRead']);
+    Route::post('notifications/read-all',    [NotificationController::class, 'markAllRead']);
 
     // ── Messages ──────────────────────────────────────────────────────────
     Route::get('messages/contacts',        [MessageController::class, 'contacts']);
