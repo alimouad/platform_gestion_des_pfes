@@ -95,211 +95,192 @@ const statutColor = { en_attente: 'bg-amber-100 text-amber-700', valide: 'bg-gre
 onMounted(fetchAll)
 </script>
 <template>
-  <div class="w-full space-y-8 pb-12">
-    <header class="flex flex-col md:flex-row md:items-end md:justify-between gap-6 border-b border-slate-100 pb-8">
-      <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1e4a49]/5 border border-[#1e4a49]/10 mb-3">
-          <span class="text-[10px] font-bold uppercase tracking-widest text-[#1e4a49]">Centre de Dépôt PFE</span>
-        </div>
-        <h1 class="text-4xl font-semibold tracking-tight text-slate-900">Mes dépôts</h1>
-        <p class="mt-2 text-sm font-medium text-slate-500">
-          Gérez et suivez l'état de vos <span class="text-slate-900 font-semibold">documents officiels</span>.
-        </p>
-      </div>
-      
-      <button @click="openCreate"
-        class="flex items-center gap-3 rounded-2xl bg-slate-900 px-6 py-3.5 text-xs font-semibold uppercase tracking-widest text-white hover:bg-[#1e4a49] hover:shadow-xl transition-all active:scale-95 shadow-lg shadow-slate-200">
-        <i class="fa-solid fa-cloud-arrow-up text-[#D4E98D]"></i> Nouveau dépôt
-      </button>
-    </header>
+  <div class="space-y-6 pb-12">
 
-    <div v-if="monProjet" class="group relative overflow-hidden rounded-[2rem] bg-white border border-slate-100 p-6 flex items-center gap-6 shadow-sm transition-all hover:shadow-md">
-      <div class="absolute right-0 top-0 h-full w-1.5 bg-[#D4E98D]"></div>
-      <div class="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-[#A3B18A] text-xl shrink-0 transition-colors group-hover:bg-[#D4E98D]/20">
-        <i class="fa-solid fa-folder-tree"></i>
-      </div>
-      <div>
-        <p class="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Projet de Fin d'Études</p>
-        <p class="text-lg font-semibold text-slate-800 leading-tight">{{ monProjet.titre }}</p>
+    <!-- Hero banner -->
+    <div class="rounded-3xl bg-[#1e4a49] px-8 py-7 text-white relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/5"></div>
+      <div class="absolute -bottom-8 right-32 h-32 w-32 rounded-full bg-[#d6e87a]/10"></div>
+      <div class="relative flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-[11px] font-black uppercase tracking-widest text-[#d6e87a]">Centre de dépôt PFE</p>
+          <h1 class="mt-1 text-2xl font-black">Mes dépôts</h1>
+          <p class="mt-1 text-sm text-white/60">{{ items.length }} fichier{{ items.length !== 1 ? 's' : '' }} soumis</p>
+        </div>
+        <button @click="openCreate"
+          class="flex items-center gap-2 rounded-2xl bg-[#d6e87a] px-6 py-3 text-sm font-black text-[#1e4a49] shadow-lg hover:brightness-105 transition active:scale-95">
+          <i class="fa-solid fa-cloud-arrow-up"></i> Nouveau dépôt
+        </button>
       </div>
     </div>
 
-    <section v-if="monProjet" class="rounded-[2.5rem] border border-white bg-white/70 p-8 shadow-sm backdrop-blur-sm">
-      <div class="flex flex-col md:flex-row items-center justify-between mb-8 gap-6">
-        <div class="text-center md:text-left">
-          <h3 class="text-xl font-semibold text-slate-900 tracking-tight">Progression des dépôts</h3>
-          <p class="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">Suivi de complétude du dossier</p>
+    <!-- No project warning -->
+    <div v-if="!monProjet" class="flex items-center gap-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4">
+      <i class="fa-solid fa-triangle-exclamation text-amber-500 text-lg shrink-0"></i>
+      <p class="text-sm font-semibold text-amber-800">Vous devez avoir un projet PFE accepté pour déposer des fichiers.</p>
+      <router-link to="/etudiant/projets" class="ml-auto shrink-0 rounded-xl bg-amber-500 px-4 py-2 text-xs font-black text-white hover:bg-amber-600 transition">
+        Voir les projets
+      </router-link>
+    </div>
+
+    <!-- Project + progress -->
+    <div v-if="monProjet" class="rounded-3xl border border-white/70 bg-white/90 shadow-sm p-6 space-y-5">
+      <!-- Project title -->
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#f0f3eb] text-[#6a8a40]">
+          <i class="fa-solid fa-folder-open"></i>
         </div>
-        
-        <div class="flex items-center gap-6">
-          <div class="text-right">
-            <p class="text-4xl font-semibold text-slate-900 tracking-tighter leading-none">
-              {{ completionPct }}<span class="text-xl text-slate-300 font-normal">%</span>
-            </p>
-            <p class="text-[10px] font-bold uppercase tracking-widest text-[#A3B18A] mt-1">Validité globale</p>
-          </div>
-          <div class="relative h-16 w-16 flex items-center justify-center">
-            <svg class="h-full w-full transform -rotate-90">
-              <circle cx="32" cy="32" r="28" stroke="#f1f5f9" stroke-width="6" fill="transparent" />
-              <circle cx="32" cy="32" r="28" stroke="#D4E98D" stroke-width="6" fill="transparent" stroke-linecap="round" 
-                :style="{ strokeDasharray: 176, strokeDashoffset: 176 - (176 * completionPct) / 100 }" />
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Projet PFE</p>
+          <p class="text-sm font-black text-slate-800">{{ monProjet.titre }}</p>
+        </div>
+        <div class="ml-auto flex items-center gap-2">
+          <div class="relative h-12 w-12 flex items-center justify-center shrink-0">
+            <svg class="h-full w-full -rotate-90">
+              <circle cx="24" cy="24" r="20" stroke="#f1f5f9" stroke-width="5" fill="transparent"/>
+              <circle cx="24" cy="24" r="20" stroke="#d6e87a" stroke-width="5" fill="transparent" stroke-linecap="round"
+                :style="{ strokeDasharray: 126, strokeDashoffset: 126 - (126 * completionPct) / 100 }"/>
             </svg>
-            <i class="fa-solid fa-check absolute text-[#A3B18A] text-xs" v-if="completionPct === 100"></i>
+            <span class="absolute text-[10px] font-black text-[#4a7a30]">{{ completionPct }}%</span>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Required types status -->
+      <div class="grid grid-cols-3 gap-3">
         <div v-for="req in requiredStatus" :key="req.type"
-          class="group relative flex items-center gap-4 rounded-3xl border p-5 transition-all duration-300"
-          :class="req.state === 'valide'    ? 'border-emerald-100 bg-emerald-50/30'
-                : req.state === 'rejete'    ? 'border-rose-100 bg-rose-50/30'
-                : req.state === 'en_attente'? 'border-amber-100 bg-amber-50/30'
-                                            : 'border-slate-100 bg-white/50 hover:bg-white'">
-          
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg shadow-sm transition-transform group-hover:scale-110"
-            :class="req.state === 'valide'    ? 'bg-emerald-500 text-white shadow-emerald-200'
-                  : req.state === 'rejete'    ? 'bg-rose-500 text-white shadow-rose-200'
-                  : req.state === 'en_attente'? 'bg-amber-500 text-white shadow-amber-200'
-                                              : 'bg-slate-100 text-slate-400'">
-            <i :class="`fa-solid ${ti(req.type).icon}`"></i>
+          class="flex items-center gap-3 rounded-2xl border p-4 transition"
+          :class="req.state === 'valide'     ? 'border-green-100 bg-green-50'
+                : req.state === 'rejete'     ? 'border-red-100 bg-red-50'
+                : req.state === 'en_attente' ? 'border-amber-100 bg-amber-50'
+                :                             'border-slate-100 bg-slate-50'">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+            :class="req.state === 'valide'     ? 'bg-green-500 text-white'
+                  : req.state === 'rejete'     ? 'bg-red-500 text-white'
+                  : req.state === 'en_attente' ? 'bg-amber-500 text-white'
+                  :                             'bg-slate-200 text-slate-400'">
+            <i :class="`fa-solid ${ti(req.type).icon} text-sm`"></i>
           </div>
-          
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-semibold text-slate-900 capitalize">{{ req.type }}</p>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-[9px] font-bold uppercase tracking-widest transition-colors"
-                :class="req.state === 'valide'    ? 'text-emerald-600'
-                      : req.state === 'rejete'    ? 'text-rose-600'
-                      : req.state === 'en_attente'? 'text-amber-700'
-                                                  : 'text-slate-400'">
-                {{ req.state === 'valide' ? '✓ Validé' : req.state === 'rejete' ? '✗ À refaire' : req.state === 'en_attente' ? '⏳ En attente' : 'Manquant' }}
-              </span>
-            </div>
+          <div>
+            <p class="text-xs font-black text-slate-700 capitalize">{{ req.type }}</p>
+            <p class="text-[10px] font-bold"
+              :class="req.state === 'valide' ? 'text-green-600' : req.state === 'rejete' ? 'text-red-500' : req.state === 'en_attente' ? 'text-amber-600' : 'text-slate-400'">
+              {{ req.state === 'valide' ? 'Validé' : req.state === 'rejete' ? 'À refaire' : req.state === 'en_attente' ? 'En attente' : 'Manquant' }}
+            </p>
           </div>
         </div>
       </div>
-    </section>
-
-    <div v-else class="rounded-[2.5rem] border-2 border-dashed border-amber-200 bg-amber-50/50 p-12 text-center flex flex-col items-center">
-      <div class="h-16 w-16 bg-white rounded-full flex items-center justify-center text-amber-500 shadow-sm mb-4">
-        <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-      </div>
-      <h3 class="text-lg font-semibold text-amber-900">Projet Non Assigné</h3>
-      <p class="mt-1 text-sm font-medium text-amber-700 max-w-sm">
-        Vous devez avoir un projet PFE accepté par un encadrant pour déverrouiller l'espace de dépôt.
-      </p>
     </div>
 
-    <div v-if="loading" class="w-full py-24 flex flex-col items-center justify-center space-y-4">
-      <div class="w-12 h-12 border-4 border-slate-100 border-t-[#D4E98D] rounded-full animate-spin"></div>
-      <p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Accès à l'espace de stockage...</p>
+    <!-- Loading -->
+    <div v-if="loading" class="rounded-3xl border border-white/70 bg-white/90 p-16 text-center text-sm text-slate-400">
+      <i class="fa-solid fa-circle-notch fa-spin text-2xl text-[#d6e87a] mb-3 block"></i>Chargement…
     </div>
 
-    <div v-else-if="items.length === 0" class="w-full py-32 rounded-[3rem] border-2 border-dashed border-slate-100 bg-white/50 flex flex-col items-center justify-center">
-      <div class="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-sm mb-6">
-        <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-200"></i>
-      </div>
-      <p class="text-lg font-semibold text-slate-900">Aucun fichier déposé</p>
-      <p class="text-sm text-slate-400 mt-1">Commencez par soumettre votre premier document officiel.</p>
+    <!-- Empty -->
+    <div v-else-if="items.length === 0 && monProjet" class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white/60 py-20 text-center">
+      <i class="fa-solid fa-cloud-arrow-up text-5xl text-slate-300"></i>
+      <p class="mt-4 text-base font-extrabold text-slate-700">Aucun fichier déposé</p>
+      <p class="mt-1 text-sm text-slate-400">Soumettez votre premier document.</p>
+      <button @click="openCreate" class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#1e4a49] px-6 py-2.5 text-sm font-black text-white hover:bg-[#163836] transition">
+        <i class="fa-solid fa-plus"></i> Déposer un fichier
+      </button>
     </div>
 
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    <!-- Depot cards -->
+    <div v-else-if="items.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
       <article v-for="d in items" :key="d.id"
-        class="group relative flex flex-col bg-white border border-slate-100 rounded-[2.5rem] p-7 transition-all duration-300 hover:shadow-2xl hover:shadow-slate-200/50 hover:border-[#D4E98D]/50 hover:-translate-y-1.5">
-        
-        <div class="flex items-start justify-between mb-6">
-          <div class="flex h-14 w-14 items-center justify-center rounded-[1.25rem] shadow-inner transition-transform group-hover:rotate-6" :class="ti(d.type_depot).color">
-            <i :class="`fa-solid ${ti(d.type_depot).icon} text-2xl`"></i>
-          </div>
-          <span class="rounded-xl px-4 py-1.5 text-[10px] font-bold uppercase tracking-widest shadow-sm" :class="statutColor[d.statut_validation]">
-            {{ statutLabel[d.statut_validation] || d.statut_validation }}
-          </span>
-        </div>
+        class="group flex flex-col rounded-3xl border border-white/70 bg-white/90 shadow-sm overflow-hidden transition hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg">
 
-        <div class="flex-1">
-          <p class="text-xs font-bold text-[#A3B18A] uppercase tracking-widest mb-1">Type de document</p>
-          <h3 class="text-xl font-semibold text-slate-900 capitalize">{{ d.type_depot }}</h3>
-          <p class="text-xs text-slate-400 mt-2 font-medium">
+        <!-- Top color bar -->
+        <div class="h-1.5 w-full"
+          :class="d.statut_validation === 'valide' ? 'bg-[#d6e87a]' : d.statut_validation === 'rejete' ? 'bg-red-300' : 'bg-amber-300'"></div>
+
+        <div class="p-6 flex flex-col flex-1">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex h-12 w-12 items-center justify-center rounded-2xl" :class="ti(d.type_depot).color">
+              <i :class="`fa-solid ${ti(d.type_depot).icon} text-xl`"></i>
+            </div>
+            <span class="rounded-xl px-3 py-1 text-[10px] font-black uppercase tracking-wide" :class="statutColor[d.statut_validation]">
+              {{ statutLabel[d.statut_validation] }}
+            </span>
+          </div>
+
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Type de document</p>
+          <h3 class="text-lg font-black text-slate-900 capitalize mb-1">{{ d.type_depot }}</h3>
+          <p class="text-xs text-slate-400 flex-1">
             Déposé le {{ new Date(d.depose_le || d.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) }}
           </p>
-          
-          <div v-if="d.commentaire && d.statut_validation === 'rejete'" class="mt-4 rounded-2xl bg-rose-50 p-4 border border-rose-100">
-            <p class="text-[10px] font-bold text-rose-400 uppercase tracking-widest mb-1">Note de l'encadrant</p>
-            <p class="text-xs font-medium italic text-rose-600 leading-relaxed">
-              « {{ d.commentaire }} »
-            </p>
-          </div>
-        </div>
 
-        <a :href="d.chemin_fichier" target="_blank" rel="noopener"
-          class="mt-8 flex items-center justify-center gap-3 rounded-2xl bg-slate-50 py-4 text-xs font-semibold text-slate-700 hover:bg-slate-900 hover:text-white transition-all shadow-sm">
-          <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ouvrir le document
-        </a>
+          <div v-if="d.commentaire && d.statut_validation === 'rejete'" class="mt-3 rounded-2xl bg-red-50 border border-red-100 px-3 py-2.5">
+            <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Note de l'encadrant</p>
+            <p class="text-xs italic text-red-600">« {{ d.commentaire }} »</p>
+          </div>
+
+          <a :href="d.chemin_fichier" target="_blank" rel="noopener"
+            class="mt-5 flex items-center justify-center gap-2 rounded-2xl bg-slate-50 py-3 text-xs font-black text-slate-600 hover:bg-[#1e4a49] hover:text-white transition">
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ouvrir le document
+          </a>
+        </div>
       </article>
     </div>
 
+    <!-- Modal -->
     <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4" @click.self="showModal = false">
-          <div class="w-full max-w-lg rounded-[3rem] bg-white shadow-2xl overflow-hidden animate-modal-in">
-            <div class="flex items-center justify-between border-b border-slate-50 px-10 py-8">
-              <div>
-                <h2 class="text-2xl font-semibold text-slate-900 tracking-tight">Nouveau dépôt</h2>
-                <p class="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">Document PFE</p>
-              </div>
-              <button @click="showModal = false" class="h-10 w-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all">
-                <i class="fa-solid fa-xmark text-lg"></i>
-              </button>
+      <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4" @click.self="showModal = false">
+        <div class="w-full max-w-lg rounded-3xl bg-white shadow-2xl overflow-hidden">
+          <div class="bg-[#1e4a49] px-6 py-5 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-[#d6e87a]">Document PFE</p>
+              <h2 class="text-base font-black text-white">Nouveau dépôt</h2>
+            </div>
+            <button @click="showModal = false" class="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="save" class="p-6 space-y-5">
+            <div v-if="error" class="rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-semibold text-red-600">
+              <i class="fa-solid fa-circle-exclamation mr-2"></i>{{ error }}
             </div>
 
-            <form @submit.prevent="save" class="p-10 space-y-8">
-              <div v-if="error" class="rounded-2xl bg-rose-50 px-6 py-4 border border-rose-100 text-sm font-semibold text-rose-600 animate-shake">
-                <i class="fa-solid fa-circle-exclamation mr-2"></i> {{ error }}
+            <div>
+              <label class="mb-3 block text-[11px] font-black uppercase tracking-widest text-slate-400">Type de document</label>
+              <div class="grid grid-cols-3 gap-3">
+                <label v-for="(meta, key) in typeIcon" :key="key"
+                  class="flex flex-col items-center gap-2 rounded-2xl border-2 px-3 py-4 cursor-pointer transition"
+                  :class="form.type_depot === key ? 'border-[#d6e87a] bg-[#f0f5e0]' : 'border-slate-100 hover:border-slate-200'">
+                  <input type="radio" :value="key" v-model="form.type_depot" class="sr-only"/>
+                  <div class="h-10 w-10 rounded-xl flex items-center justify-center"
+                    :class="form.type_depot === key ? 'bg-[#d6e87a] text-[#1e4a49]' : 'bg-slate-50 text-slate-400'">
+                    <i :class="`fa-solid ${meta.icon} text-lg`"></i>
+                  </div>
+                  <span class="text-[10px] font-black uppercase tracking-wide text-center">{{ key }}</span>
+                </label>
               </div>
+            </div>
 
-              <div>
-                <label class="mb-4 block text-[11px] font-bold text-slate-400 uppercase tracking-widest">Sélectionner le type</label>
-                <div class="grid grid-cols-3 gap-3">
-                  <label v-for="(meta, key) in typeIcon" :key="key"
-                    class="group flex flex-col items-center gap-3 rounded-2xl border-2 px-3 py-5 cursor-pointer transition-all duration-200"
-                    :class="form.type_depot === key ? 'border-[#D4E98D] bg-[#D4E98D]/5 shadow-inner' : 'border-slate-50 hover:border-slate-100 hover:bg-slate-50/50'">
-                    <input type="radio" :value="key" v-model="form.type_depot" class="sr-only" />
-                    <div class="h-12 w-12 rounded-xl flex items-center justify-center transition-colors"
-                      :class="form.type_depot === key ? 'bg-[#D4E98D] text-[#1e4a49]' : 'bg-slate-50 text-slate-400 group-hover:text-slate-600'">
-                      <i :class="`fa-solid ${meta.icon} text-xl`"></i>
-                    </div>
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-center">{{ key }}</span>
-                  </label>
-                </div>
+            <div>
+              <label class="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-400">Lien du document</label>
+              <div class="relative">
+                <i class="fa-solid fa-link absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input v-model="form.chemin_fichier" type="url" required placeholder="https://drive.google.com/..."
+                  class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-10 py-3 text-sm outline-none focus:border-[#d6e87a] focus:bg-white transition"/>
               </div>
+              <p class="mt-1.5 text-[10px] text-slate-400 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-[#d6e87a]"></i> Le document doit être en accès public.
+              </p>
+            </div>
 
-              <div>
-                <label class="mb-2 block text-[11px] font-bold text-slate-400 uppercase tracking-widest px-1">Lien vers le document</label>
-                <div class="relative group">
-                  <i class="fa-solid fa-link absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#A3B18A] transition-colors"></i>
-                  <input v-model="form.chemin_fichier" type="url" required
-                    placeholder="https://cloud.university.edu/..."
-                    class="w-full rounded-2xl bg-slate-50 border border-slate-50 px-12 py-4 text-sm font-medium outline-none focus:bg-white focus:border-[#D4E98D] transition-all shadow-inner" />
-                </div>
-                <p class="mt-3 text-[10px] text-slate-400 italic px-1 flex items-center gap-2">
-                  <i class="fa-solid fa-info-circle text-[#D4E98D]"></i> Le document doit être en mode "Lecture Publique".
-                </p>
-              </div>
-
-              <div class="flex gap-4 pt-4">
-                <button type="button" @click="showModal = false" class="flex-1 rounded-2xl border border-slate-100 py-4 text-sm font-semibold text-slate-500 hover:bg-slate-50 transition-all">
-                  Annuler
-                </button>
-                <button type="submit" 
-                  class="flex-[2] rounded-2xl bg-slate-900 py-4 text-sm font-semibold tracking-widest uppercase text-white hover:bg-[#1e4a49] shadow-xl shadow-slate-200 transition-all active:scale-95">
-                  Valider le dépôt
-                </button>
-              </div>
-            </form>
-          </div>
+            <div class="flex gap-3 pt-2">
+              <button type="button" @click="showModal = false" class="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">Annuler</button>
+              <button type="submit" class="flex-2 rounded-2xl bg-[#1e4a49] py-3 text-sm font-black text-white hover:bg-[#163836] transition">
+                <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Valider le dépôt
+              </button>
+            </div>
+          </form>
         </div>
-      </Transition>
+      </div>
     </Teleport>
   </div>
 </template>

@@ -157,7 +157,7 @@ const roles = [
             </div>
             <div>
               <p class="text-xs font-black text-white leading-none">Faculté des Sciences Ben M'Sick</p>
-              <p class="text-[10px] mt-0.5 font-medium" style="color:rgba(255,255,255,0.3)">Université Hassan II de Casablanca · Master GAGE</p>
+              <p class="text-[10px] mt-0.5 font-medium" style="color:rgba(255,255,255,0.3)">Université Hassan II de Casablanca ·</p>
             </div>
           </div>
         </div>
@@ -191,7 +191,7 @@ const roles = [
             <div class="logo-gem flex h-10 w-10 items-center justify-center rounded-2xl">
               <i class="fa-solid fa-seedling text-sm" style="color:#1e4a49"></i>
             </div>
-            <span class="font-black text-base" style="color:#0b1f1e">GAGE · FSBM</span>
+            <span class="font-black text-base" style="color:#0b1f1e">FSBM</span>
           </div>
 
           <!-- eyebrow -->

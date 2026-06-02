@@ -152,7 +152,7 @@ const zonePickerRef = ref(null)
 let pickerMap = null
 let pickerMarker = null
 let pickerRect = null
-let drawStart = null
+const drawStart = ref(null)
 let isDrawing = false
 
 const defaultForm = () => ({
@@ -370,14 +370,14 @@ async function openZonePicker() {
       color: '#1e4a49', fillColor: '#d6e87a', fillOpacity: 0.3, weight: 2
     }).addTo(pickerMap)
     const center = bounds.getCenter()
-    drawStart = { bounds, center }
+    drawStart.value = { bounds, center }
     startLatLng = null
   })
 }
 
 function confirmZone() {
-  if (drawStart) {
-    const { bounds, center } = drawStart
+  if (drawStart.value) {
+    const { bounds, center } = drawStart.value
     form.value.latitude  = parseFloat(center.lat.toFixed(6))
     form.value.longitude = parseFloat(center.lng.toFixed(6))
     form.value.zone_etude = {
@@ -394,13 +394,13 @@ function clearZone() {
   form.value.zone_etude = null
   form.value.latitude = ''
   form.value.longitude = ''
-  drawStart = null
+  drawStart.value = null
   if (pickerRect) { pickerRect.remove(); pickerRect = null }
 }
 
 function closeZonePicker() {
   showZonePicker.value = false
-  drawStart = null
+  drawStart.value = null
   isDrawing = false
 }
 
@@ -881,7 +881,7 @@ onMounted(fetchAll)
                 <i class="fa-solid fa-check-circle text-green-500 mr-1"></i>
                 Zone sélectionnée · N {{ drawStart.bounds.getNorth().toFixed(4) }} S {{ drawStart.bounds.getSouth().toFixed(4) }}
               </span>
-              <span v-else class="text-slate-400">Aucune zone dessinée</span>
+              <span v-else class="text-slate-400">Dessinez un rectangle sur la carte</span>
             </div>
             <div class="flex gap-3">
               <button type="button" @click="closeZonePicker"

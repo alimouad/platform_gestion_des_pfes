@@ -47,132 +47,130 @@ onMounted(fetchAll)
 </script>
 
 <template>
-  <div class="w-full min-h-screen  pb-20">
-    <header class="sticky top-0 z-30 w-full backdrop-blur-md border-b border-gray-100 transition-all">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div class="space-y-1">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1e4a49]/5 border border-[#1e4a49]/10 mb-3">
-          <span class="text-[10px] font-bold uppercase tracking-widest text-[#1e4a49]">Suivi du mon PFE</span>
+  <div class="space-y-6 pb-12">
+
+    <!-- Hero banner -->
+    <div class="rounded-3xl bg-[#1e4a49] px-8 py-7 text-white relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 h-52 w-52 rounded-full bg-white/5"></div>
+      <div class="absolute -bottom-8 right-32 h-32 w-32 rounded-full bg-[#d6e87a]/10"></div>
+      <div class="relative flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-[11px] font-black uppercase tracking-widest text-[#d6e87a]">Suivi de candidatures</p>
+          <h1 class="mt-1 text-2xl font-black">Mes postulations</h1>
+          <p class="mt-1 text-sm text-white/60">{{ items.length }} candidature{{ items.length !== 1 ? 's' : '' }} au total</p>
         </div>
-          <h1 class="text-4xl font-semibold text-gray-900 tracking-tight">Mes postulations</h1>
-          <p class="text-sm font-medium text-gray-500">Consultez l'historique et l'avancement de vos candidatures.</p>
-        </div>
-        
-        <div class="flex items-center gap-6 bg-white px-6 py-4 rounded-[2rem] shadow-sm border border-gray-100">
-          <div class="flex flex-col items-center">
-            <p class="text-2xl font-semibold text-gray-900">{{ items.length }}</p>
-            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Total</p>
+        <!-- KPI chips -->
+        <div class="flex items-center gap-3">
+          <div class="rounded-2xl bg-white/10 px-5 py-3 text-center">
+            <p class="text-2xl font-black text-white">{{ counts.en_attente }}</p>
+            <p class="text-[10px] font-bold text-white/50 uppercase tracking-wide">En attente</p>
           </div>
-          <div class="w-px h-8 bg-gray-100"></div>
-          <div class="flex flex-col items-center">
-            <div class="flex items-center gap-1.5">
-              <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#D4E98D] opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#D4E98D]"></span>
-              </span>
-              <p class="text-2xl font-semibold text-gray-900">{{ counts['en_attente'] || 0 }}</p>
-            </div>
-            <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400">Actives</p>
+          <div class="rounded-2xl bg-[#d6e87a]/15 px-5 py-3 text-center">
+            <p class="text-2xl font-black text-[#d6e87a]">{{ counts.accepte }}</p>
+            <p class="text-[10px] font-bold text-[#d6e87a]/60 uppercase tracking-wide">Acceptées</p>
+          </div>
+          <div class="rounded-2xl bg-red-400/10 px-5 py-3 text-center">
+            <p class="text-2xl font-black text-red-300">{{ counts.rejete }}</p>
+            <p class="text-[10px] font-bold text-red-300/60 uppercase tracking-wide">Rejetées</p>
           </div>
         </div>
       </div>
-    </header>
+    </div>
 
-    <div class="mt-10 space-y-10">
-      <div class="flex flex-wrap items-center gap-3">
-        <button @click="filter = ''"
-          class="rounded-2xl px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all"
-          :class="!filter ? 'bg-gray-900 text-white shadow-xl shadow-gray-200' : 'bg-white text-gray-400 hover:text-gray-900 border border-gray-100'">
-          Tous les dossiers
-        </button>
-        
-        <button v-for="(label, key) in statutLabel" :key="key"
-          @click="filter = key"
-          class="group flex items-center gap-3 rounded-2xl px-6 py-3 text-xs font-bold uppercase tracking-widest transition-all border"
-          :class="filter === key ? 'bg-gray-900 text-white shadow-xl shadow-gray-200 border-gray-900' : 'bg-white text-gray-400 hover:border-gray-300 border-gray-100'">
-          {{ label }}
-          <span class="text-[10px] px-2 py-0.5 rounded-full" :class="filter === key ? 'bg-white/20' : 'bg-gray-50 group-hover:bg-gray-100'">
-            {{ counts[key] || 0 }}
+    <!-- Filter pills -->
+    <div class="flex flex-wrap gap-2">
+      <button @click="filter = ''"
+        class="rounded-2xl px-5 py-2.5 text-sm font-bold transition"
+        :class="!filter ? 'bg-[#1e4a49] text-[#d6e87a]' : 'bg-white/90 text-slate-600 hover:bg-slate-100 border border-white/70'">
+        Toutes
+      </button>
+      <button v-for="(label, key) in statutLabel" :key="key"
+        @click="filter = key"
+        class="flex items-center gap-2 rounded-2xl px-5 py-2.5 text-sm font-bold transition border"
+        :class="filter === key ? 'bg-[#1e4a49] text-[#d6e87a] border-transparent' : 'bg-white/90 text-slate-600 hover:bg-slate-100 border-white/70'">
+        {{ label }}
+        <span class="rounded-md px-1.5 py-0.5 text-[10px]" :class="filter === key ? 'bg-white/20' : 'bg-slate-100'">{{ counts[key] || 0 }}</span>
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div v-if="loading" class="rounded-3xl border border-white/70 bg-white/90 p-16 text-center text-sm text-slate-400">
+      <i class="fa-solid fa-circle-notch fa-spin text-2xl text-[#d6e87a] mb-3 block"></i>Chargement…
+    </div>
+
+    <!-- Empty -->
+    <div v-else-if="filtered.length === 0" class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white/60 py-24 text-center">
+      <i class="fa-solid fa-file-signature text-5xl text-slate-300"></i>
+      <p class="mt-4 text-base font-extrabold text-slate-700">Aucune postulation</p>
+      <p class="mt-1 text-sm text-slate-400">Explorez les projets disponibles et postulez.</p>
+      <router-link to="/etudiant/projets" class="mt-6 inline-flex items-center gap-2 rounded-2xl bg-[#1e4a49] px-6 py-2.5 text-sm font-black text-white hover:bg-[#163836] transition">
+        <i class="fa-solid fa-compass"></i> Voir les projets
+      </router-link>
+    </div>
+
+    <!-- List -->
+    <div v-else class="space-y-3">
+      <article v-for="p in filtered" :key="p.id"
+        class="group flex flex-wrap items-center gap-5 rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-[#d6e87a] hover:shadow-lg">
+
+        <!-- Status icon -->
+        <div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl transition-transform group-hover:scale-105"
+          :class="p.statut === 'accepte' ? 'bg-green-100 text-green-600'
+            : p.statut === 'rejete'  ? 'bg-red-100 text-red-500'
+            : 'bg-[#d6e87a]/30 text-[#1e4a49]'">
+          <i :class="`fa-solid ${statutIcon[p.statut]} text-xl`"></i>
+        </div>
+
+        <!-- Info -->
+        <div class="flex-1 min-w-50">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <span v-if="p.projet?.domaine" class="rounded-lg bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600 uppercase tracking-wide">
+              {{ p.projet.domaine }}
+            </span>
+            <span class="text-[10px] text-slate-300 font-mono">#{{ p.id }}</span>
+          </div>
+          <h3 class="text-sm font-black text-slate-900 leading-snug line-clamp-1 group-hover:text-[#1e4a49] transition">
+            {{ p.projet?.titre || '—' }}
+          </h3>
+          <p class="mt-0.5 text-xs text-slate-400">
+            <i class="fa-solid fa-chalkboard-user mr-1"></i>
+            {{ p.projet?.professeur?.utilisateur?.prenom }} {{ p.projet?.professeur?.utilisateur?.nom }}
+          </p>
+        </div>
+
+        <!-- Date -->
+        <div class="hidden md:block text-right shrink-0">
+          <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Postulé le</p>
+          <p class="text-sm font-bold text-slate-700">
+            {{ new Date(p.date_candidature || p.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }) }}
+          </p>
+        </div>
+
+        <!-- Status badge -->
+        <div class="flex items-center gap-2 rounded-2xl px-4 py-2.5 shrink-0"
+          :class="p.statut === 'accepte' ? 'bg-green-50 border border-green-100'
+            : p.statut === 'rejete'  ? 'bg-red-50 border border-red-100'
+            : 'bg-slate-50 border border-slate-100'">
+          <span class="h-2 w-2 rounded-full"
+            :class="p.statut === 'accepte' ? 'bg-green-500' : p.statut === 'rejete' ? 'bg-red-400' : 'bg-amber-400'"></span>
+          <span class="text-[11px] font-black uppercase tracking-widest"
+            :class="p.statut === 'accepte' ? 'text-green-700' : p.statut === 'rejete' ? 'text-red-600' : 'text-amber-700'">
+            {{ statutLabel[p.statut] }}
           </span>
+        </div>
+
+        <!-- Action -->
+        <button v-if="p.statut === 'en_attente'" @click="annuler(p.id)"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-300 hover:bg-red-50 hover:text-red-500 transition"
+          title="Annuler">
+          <i class="fa-solid fa-trash-can"></i>
         </button>
-      </div>
-
-      <div class="w-full">
-        <div v-if="loading" class="w-full py-32 flex flex-col items-center justify-center space-y-4">
-          <div class="w-12 h-12 border-4 border-gray-100 border-t-[#D4E98D] rounded-full animate-spin"></div>
-          <p class="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">Chargement de vos données...</p>
-        </div>
-
-        <div v-else-if="filtered.length === 0" class="w-full py-40 rounded-[3rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center bg-gray-50/30 text-center">
-          <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-sm mb-6">
-             <i class="fa-solid fa-file-circle-exclamation text-3xl text-gray-200"></i>
-          </div>
-          <h2 class="text-xl font-semibold text-gray-800">Aucun dossier trouvé</h2>
-          <p class="text-sm text-gray-500 mt-2 max-w-xs">Il semble qu'aucune candidature ne corresponde à votre sélection actuelle.</p>
-          <button @click="router.push('/projets')" class="mt-8 px-8 py-3 bg-gray-900 text-white rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-[#1e4a49] transition-colors">
-            Parcourir les projets
-          </button>
-        </div>
-
-        <div v-else class="grid grid-cols-1 gap-4">
-          <article v-for="p in filtered" :key="p.id"
-            class="group w-full flex flex-col lg:flex-row lg:items-center gap-8 bg-white p-8 rounded-[2.5rem] border border-gray-100 transition-all duration-300 hover:shadow-2xl hover:shadow-gray-200/40 hover:border-[#D4E98D]/50 hover:-translate-y-1">
-            
-            <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.5rem] shadow-inner transition-transform group-hover:rotate-6"
-              :class="p.statut === 'accepte' ? 'bg-emerald-50 text-emerald-600'
-                : p.statut === 'rejete' ? 'bg-rose-50 text-rose-600'
-                : 'bg-[#D4E98D]/10 text-[#1e4a49]'">
-              <i :class="`fa-solid ${statutIcon[p.statut]} text-2xl`"></i>
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-3 mb-2">
-                <span class="px-3 py-1 rounded-lg bg-gray-50 text-[10px] font-bold text-[#A3B18A] uppercase tracking-widest border border-gray-100">{{ p.projet?.domaine }}</span>
-                <span class="text-[10px] font-semibold text-gray-300 uppercase tracking-widest font-mono">#ID-{{ p.id }}</span>
-              </div>
-              <h3 class="text-xl font-semibold text-gray-900 truncate group-hover:text-[#1e4a49] transition-colors leading-tight">
-                {{ p.projet?.titre || 'Projet de Fin d\'Études' }}
-              </h3>
-              <div class="flex items-center gap-2 mt-2">
-                <div class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500">
-                  {{ p.projet?.professeur?.utilisateur?.nom?.charAt(0) }}
-                </div>
-                <p class="text-sm text-gray-400 font-medium">
-                  Supervisé par <span class="text-gray-700 font-semibold">{{ p.projet?.professeur?.utilisateur?.prenom }} {{ p.projet?.professeur?.utilisateur?.nom }}</span>
-                </p>
-              </div>
-            </div>
-
-            <div class="lg:w-44 px-2 py-4 lg:py-0 border-t lg:border-t-0 lg:border-l border-gray-50">
-              <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Date d'envoi</p>
-              <p class="text-sm font-semibold text-gray-700">
-                {{ new Date(p.date_candidature || p.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }) }}
-              </p>
-            </div>
-
-            <div class="lg:w-52">
-              <div class="flex items-center justify-center lg:justify-start gap-3 rounded-[1.25rem] py-4 px-6 transition-all"
-                :class="p.statut === 'accepte' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                  : p.statut === 'rejete' ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                  : 'bg-gray-50 text-gray-600 border border-gray-100'">
-                <div class="w-2 h-2 rounded-full" :class="p.statut === 'accepte' ? 'bg-emerald-500' : p.statut === 'rejete' ? 'bg-rose-500' : 'bg-gray-300'"></div>
-                <span class="text-[11px] font-bold uppercase tracking-widest">{{ statutLabel[p.statut] || p.statut }}</span>
-              </div>
-            </div>
-
-            <div class="flex justify-end lg:w-24">
-              <button v-if="p.statut === 'en_attente'" @click="annuler(p.id)"
-                class="h-12 w-12 rounded-[1.25rem] flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-100 transition-all group/btn"
-                title="Annuler ma postulation">
-                <i class="fa-solid fa-trash-can text-base transition-transform group-hover/btn:scale-110"></i>
-              </button>
-              <button v-else @click="viewDetails(p.id)" class="h-12 w-12 rounded-[1.25rem] flex items-center justify-center text-gray-400 hover:text-[#1e4a49] hover:bg-[#D4E98D]/10 border border-transparent hover:border-[#D4E98D]/20 transition-all">
-                <i class="fa-solid fa-arrow-right text-base"></i>
-              </button>
-            </div>
-          </article>
-        </div>
-      </div>
+        <router-link v-else-if="p.statut === 'accepte'" to="/etudiant/mon-projet"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#d6e87a]/20 text-[#1e4a49] hover:bg-[#d6e87a]/40 transition">
+          <i class="fa-solid fa-arrow-right text-sm"></i>
+        </router-link>
+        <div v-else class="h-10 w-10 shrink-0"></div>
+      </article>
     </div>
   </div>
 </template>
