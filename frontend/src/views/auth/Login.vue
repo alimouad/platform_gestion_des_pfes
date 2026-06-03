@@ -43,90 +43,110 @@ async function submit() {
 }
 
 const roles = [
-  { icon: 'fa-user-shield',     label: 'Administrateur', color: '#a78bfa' },
-  { icon: 'fa-user-tie',        label: 'Coordinateur',   color: '#38bdf8' },
-  { icon: 'fa-chalkboard-user', label: 'Professeur',     color: '#d6e87a' },
-  { icon: 'fa-user-graduate',   label: 'Étudiant',       color: '#fb923c' },
+  { icon: 'fa-user-shield',     label: 'Administrateur', color: '#a78bfa', bg: 'rgba(167,139,250,.12)' },
+  { icon: 'fa-user-tie',        label: 'Coordinateur',   color: '#38bdf8', bg: 'rgba(56,189,248,.12)' },
+  { icon: 'fa-chalkboard-user', label: 'Professeur',     color: '#d6e87a', bg: 'rgba(214,232,122,.12)' },
+  { icon: 'fa-user-graduate',   label: 'Étudiant',       color: '#fb923c', bg: 'rgba(251,146,60,.12)' },
 ]
 
 const steps = [
-  { icon: 'fa-file-pen',          label: 'Soumission du sujet',  sub: 'Par le professeur encadrant' },
-  { icon: 'fa-user-check',        label: 'Affectation étudiant', sub: 'Sélection par le coordinateur' },
-  { icon: 'fa-map-location-dot',  label: 'Zone d\'étude SIG',    sub: 'Cartographie Leaflet interactive' },
-  { icon: 'fa-boxes-stacked',     label: 'Dépôt des livrables',  sub: 'Rapports et données validés' },
-  { icon: 'fa-graduation-cap',    label: 'Soutenance & note',    sub: 'Jury, salle, date et note /20' },
+  { icon: 'fa-file-pen',         label: 'Soumission',   sub: 'Professeur propose le sujet' },
+  { icon: 'fa-user-check',       label: 'Affectation',  sub: 'Coordinateur valide' },
+  { icon: 'fa-map-location-dot', label: 'Zone SIG',     sub: 'Cartographie Leaflet' },
+  { icon: 'fa-boxes-stacked',    label: 'Dépôts',       sub: 'Livrables & données' },
+  { icon: 'fa-graduation-cap',   label: 'Soutenance',   sub: 'Note finale /20' },
 ]
 </script>
 
 <template>
-  <div class="login-root">
+  <div class="root">
 
-    <!-- ═══════════════════════════════════════
-         LEFT PANEL
-    ═══════════════════════════════════════ -->
+    <!-- ═══ LEFT PANEL ═══ -->
     <div class="left-panel hidden lg:flex flex-col">
 
-      <!-- animated layers -->
-      <div class="abs-fill hex-grid"></div>
-      <div class="abs-fill radial-vignette"></div>
-      <div class="abs-fill scan-line"></div>
+      <!-- bg layers -->
+      <div class="abs-fill" style="background:radial-gradient(ellipse 80% 60% at 20% 30%,rgba(0,0,0,.25) 0%,transparent 60%)"></div>
+      <div class="abs-fill mesh"></div>
+      <div class="abs-fill" style="background:radial-gradient(ellipse 60% 80% at 85% 80%,rgba(0,0,0,.2) 0%,transparent 55%)"></div>
 
-      <!-- decorative rings -->
-      <div class="deco-ring deco-ring-1"></div>
-      <div class="deco-ring deco-ring-2"></div>
-      <div class="deco-ring deco-ring-3"></div>
+      <!-- geometric accents -->
+      <div class="geo-ring" style="width:480px;height:480px;top:-160px;right:-120px;border-color:rgba(214,232,122,.12)"></div>
+      <div class="geo-ring" style="width:300px;height:300px;top:-90px;right:-55px;border-color:rgba(214,232,122,.07)"></div>
+      <div class="geo-ring" style="width:180px;height:180px;bottom:80px;left:-50px;border-color:rgba(214,232,122,.08)"></div>
+      <div class="geo-ring" style="width:90px;height:90px;bottom:160px;left:20px;border-color:rgba(214,232,122,.06)"></div>
 
-      <!-- floating dots -->
-      <div class="fdot" style="width:8px;height:8px;top:18%;right:16%;animation-delay:0s"></div>
-      <div class="fdot" style="width:5px;height:5px;top:42%;right:9%;animation-delay:-2.5s;opacity:.5"></div>
-      <div class="fdot" style="width:6px;height:6px;bottom:28%;right:22%;animation-delay:-5s;opacity:.6"></div>
-      <div class="fdot" style="width:4px;height:4px;bottom:45%;left:20%;animation-delay:-3s;opacity:.4"></div>
+      <!-- floating particles -->
+      <div class="particle" style="width:7px;height:7px;top:19%;right:17%;animation-delay:0s"></div>
+      <div class="particle" style="width:4px;height:4px;top:44%;right:8%;animation-delay:-2s;opacity:.45"></div>
+      <div class="particle" style="width:5px;height:5px;bottom:30%;right:24%;animation-delay:-4.5s;opacity:.55"></div>
+      <div class="particle" style="width:3px;height:3px;bottom:48%;left:18%;animation-delay:-7s;opacity:.35"></div>
 
-      <!-- content -->
-      <div class="relative z-10 flex flex-col h-full px-14 py-12 justify-between">
+      <!-- horizontal scan line -->
+      <div class="abs-fill scan"></div>
 
+      <!-- CONTENT -->
+      <div class="relative z-10 flex flex-col h-full px-12 py-10 justify-between">
 
-        <!-- middle: title + steps -->
-        <div class="space-y-10">
-          <div :class="mounted?'fade-up':'opacity-0'" style="--d:80ms">
-            <p class="eyebrow-tag mb-5">✦ Plateforme PFE · FSBM Hassan II</p>
-            <h2 class="hero-title">
-              Gérez votre<br/>
-              projet de fin<br/>
-              <span class="lime-text">d'études</span>
+        <!-- top: logo -->
+        <div class="flex items-center justify-between" :class="mounted?'slide-in':'opacity-0'" style="--d:0ms">
+          <div class="flex items-center gap-3.5">
+            <div class="brand-gem">
+              <i class="fa-solid fa-seedling" style="color:#0c1f1e;font-size:1rem"></i>
+            </div>
+            <div>
+              <p class="font-black text-white text-lg leading-none tracking-tight">GeoGrad</p>
+              <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:rgba(214,232,122,.5)">Gestion PFE · FSBM</p>
+            </div>
+          </div>
+          <div class="live-chip">
+            <span class="live-dot"></span>
+            <span style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.18em;color:rgba(214,232,122,.65)">2024–2026</span>
+          </div>
+        </div>
+
+        <!-- center: headline + steps -->
+        <div class="space-y-8">
+          <div :class="mounted?'slide-in':'opacity-0'" style="--d:70ms">
+            <p style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.28em;color:rgba(214,232,122,.45);margin-bottom:1.2rem">
+              ✦ Plateforme académique · Hassan II
+            </p>
+            <h2 class="headline">
+              Pilotez votre<br/>
+              PFE du début<br/>
+              <em class="lime-em">à la fin.</em>
             </h2>
-            <p class="mt-5 text-sm leading-relaxed" style="color:rgba(255,255,255,.32);max-width:300px">
-              Un espace unifié : soumission, suivi, cartographie SIG, messagerie et soutenance.
+            <p style="margin-top:1.1rem;font-size:13px;line-height:1.7;color:rgba(255,255,255,.28);max-width:290px;font-weight:500">
+              Un espace unifié pour étudiants, professeurs et coordinateurs — avec cartographie SIG intégrée.
             </p>
           </div>
 
-          <!-- steps timeline -->
-          <div>
-            <div v-for="(s, i) in steps" :key="s.label"
-              class="step-row" :class="mounted?'fade-up':'opacity-0'"
-              :style="`--d:${180 + i*65}ms`">
-              <div v-if="i < steps.length-1" class="step-connector"></div>
+          <!-- timeline -->
+          <div class="space-y-0">
+            <div v-for="(step, i) in steps" :key="step.label"
+              class="step" :class="mounted?'slide-in':'opacity-0'"
+              :style="`--d:${160+i*60}ms`">
+              <div v-if="i < steps.length-1" class="step-line"></div>
               <div class="step-orb">
-                <i :class="`fa-solid ${s.icon}`" style="font-size:10px;color:#d6e87a"></i>
+                <i :class="`fa-solid ${step.icon}`" style="font-size:9px;color:#d6e87a"></i>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-black text-white leading-none">{{ s.label }}</p>
-                <p class="text-[10px] mt-0.5" style="color:rgba(255,255,255,.28)">{{ s.sub }}</p>
+              <div class="flex-1">
+                <p style="font-size:12.5px;font-weight:900;color:#fff;line-height:1">{{ step.label }}</p>
+                <p style="font-size:10px;font-weight:500;color:rgba(255,255,255,.28);margin-top:2px">{{ step.sub }}</p>
               </div>
-              <span class="step-num">0{{ i+1 }}</span>
+              <span style="font-size:9px;font-weight:900;color:rgba(214,232,122,.3);min-width:20px;text-align:right">0{{ i+1 }}</span>
             </div>
           </div>
         </div>
 
         <!-- bottom: university -->
-        <div class="pt-6 border-t border-white/8" :class="mounted?'fade-up':'opacity-0'" style="--d:560ms">
+        <div :class="mounted?'slide-in':'opacity-0'" style="--d:540ms;border-top:1px solid rgba(255,255,255,.07);padding-top:1.4rem">
           <div class="flex items-center gap-3.5">
-            <div class="univ-icon">
-              <i class="fa-solid fa-building-columns" style="color:#d6e87a;font-size:12px"></i>
+            <div class="univ-badge">
+              <i class="fa-solid fa-building-columns" style="color:#d6e87a;font-size:11px"></i>
             </div>
             <div>
-              <p class="text-xs font-black text-white leading-none">Faculté des Sciences Ben M'Sick</p>
-              <p class="text-[10px] mt-0.5" style="color:rgba(255,255,255,.28)">Université Hassan II de Casablanca</p>
+              <p style="font-size:11.5px;font-weight:900;color:#fff;line-height:1">Faculté des Sciences Ben M'Sick</p>
+              <p style="font-size:10px;font-weight:500;color:rgba(255,255,255,.28);margin-top:3px">Université Hassan II de Casablanca</p>
             </div>
           </div>
         </div>
@@ -134,113 +154,118 @@ const steps = [
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════
-         RIGHT PANEL
-    ═══════════════════════════════════════ -->
+    <!-- ═══ RIGHT PANEL ═══ -->
     <div class="right-panel flex flex-1 flex-col">
 
-      <!-- bg texture -->
-      <div class="abs-fill cream-dots"></div>
-      <div class="abs-fill" style="background:radial-gradient(ellipse 60% 50% at 80% 20%,rgba(214,232,122,.14) 0%,transparent 60%)"></div>
+      <!-- background -->
+      <div class="abs-fill" style="background:radial-gradient(ellipse 70% 55% at 85% 15%,rgba(214,232,122,.13) 0%,transparent 55%)"></div>
+      <div class="abs-fill" style="background:radial-gradient(ellipse 50% 45% at 10% 90%,rgba(30,74,73,.07) 0%,transparent 55%)"></div>
+      <div class="abs-fill noise-dots"></div>
 
-      <!-- corner ornaments -->
-      <div class="ornament" style="width:340px;height:340px;border-width:52px;top:-110px;right:-110px;opacity:.12"></div>
-      <div class="ornament" style="width:180px;height:180px;border-width:28px;bottom:50px;left:-50px;opacity:.08;border-color:#1e4a49"></div>
+      <!-- corner shapes -->
+      <div class="corner-ring" style="width:360px;height:360px;border-width:56px;top:-115px;right:-115px;opacity:.11"></div>
+      <div class="corner-ring" style="width:200px;height:200px;border-width:32px;bottom:55px;left:-55px;opacity:.07;border-color:#1e4a49"></div>
 
       <div class="relative z-10 flex flex-1 flex-col items-center justify-center px-8 py-10">
-        <div class="form-card" :class="mounted?'fade-up':'opacity-0'" style="--d:40ms">
+        <div style="width:100%;max-width:400px">
 
           <!-- mobile logo -->
-          <div class="mb-8 flex items-center gap-3 lg:hidden">
-            <div class="gem-logo-sm">
-              <i class="fa-solid fa-seedling text-sm" style="color:#0c1f1e"></i>
+          <div class="mb-8 flex items-center gap-3 lg:hidden" :class="mounted?'slide-in':'opacity-0'" style="--d:0ms">
+            <div class="brand-gem-sm">
+              <i class="fa-solid fa-seedling" style="color:#0c1f1e;font-size:.85rem"></i>
             </div>
-            <span class="font-black text-base" style="color:#0c1f1e">GAGE · FSBM</span>
+            <span style="font-weight:900;font-size:1rem;color:#0c1f1e">GeoGrad</span>
           </div>
 
           <!-- form header -->
-          <div class="mb-8" :class="mounted?'fade-up':'opacity-0'" style="--d:100ms">
-            <div class="secure-badge">
-              <span class="secure-icon"><i class="fa-solid fa-shield-halved" style="color:#d6e87a;font-size:8px"></i></span>
-              <span class="text-[10px] font-black uppercase tracking-widest" style="color:#1e4a49">Accès institutionnel sécurisé</span>
+          <div class="mb-7" :class="mounted?'slide-in':'opacity-0'" style="--d:80ms">
+            <div class="access-tag">
+              <div class="access-icon">
+                <i class="fa-solid fa-shield-halved" style="color:#d6e87a;font-size:7px"></i>
+              </div>
+              <span style="font-size:9.5px;font-weight:900;text-transform:uppercase;letter-spacing:.14em;color:#1e4a49">Accès sécurisé — GeoGrad</span>
             </div>
-            <h1 class="mt-5 text-3xl font-black tracking-tight" style="color:#0c1f1e;letter-spacing:-.03em">
-              Bon retour <span class="wave">👋</span>
-            </h1>
-            <p class="mt-2 text-sm" style="color:#7a9490">Connectez-vous pour accéder à votre espace PFE.</p>
+            <h1 class="form-title">Connexion</h1>
+            <p style="font-size:13px;color:#7a9490;margin-top:6px;font-weight:500">Accédez à votre espace de gestion PFE.</p>
           </div>
 
           <!-- form -->
-          <form @submit.prevent="submit" novalidate class="space-y-4" :class="mounted?'fade-up':'opacity-0'" style="--d:160ms">
+          <form @submit.prevent="submit" novalidate
+            class="space-y-4" :class="mounted?'slide-in':'opacity-0'" style="--d:150ms">
 
-            <div class="input-card">
-              <div class="input-label">
-                <i class="fa-regular fa-envelope" style="color:#1e4a49;font-size:9px"></i>
+            <div class="field-card" :class="email ? 'field-filled' : ''">
+              <label class="field-label">
+                <i class="fa-regular fa-envelope" style="font-size:8px;color:#1e4a49"></i>
                 Adresse e-mail
-              </div>
-              <div class="input-wrap">
-                <input v-model="email" type="email" placeholder="prenom.nom@fsbm.ac.ma" required class="i-field"/>
-                <div class="i-bar"></div>
+              </label>
+              <div class="field-inner">
+                <input v-model="email" type="email" placeholder="prenom.nom@fsbm.ac.ma" required class="field-input" />
+                <div class="field-bar"></div>
               </div>
             </div>
 
-            <div class="input-card">
-              <div class="input-label">
-                <i class="fa-solid fa-lock" style="color:#1e4a49;font-size:9px"></i>
+            <div class="field-card" :class="password ? 'field-filled' : ''">
+              <label class="field-label">
+                <i class="fa-solid fa-lock" style="font-size:8px;color:#1e4a49"></i>
                 Mot de passe
-              </div>
-              <div class="input-wrap">
-                <input v-model="password" :type="showPassword?'text':'password'" placeholder="••••••••" required class="i-field pr-10"/>
-                <div class="i-bar"></div>
+              </label>
+              <div class="field-inner" style="position:relative">
+                <input v-model="password" :type="showPassword?'text':'password'" placeholder="••••••••" required class="field-input" style="padding-right:2rem" />
+                <div class="field-bar"></div>
                 <button type="button" @click="showPassword=!showPassword" class="eye-btn">
-                  <i :class="showPassword?'fa-regular fa-eye-slash':'fa-regular fa-eye'"></i>
+                  <i :class="showPassword?'fa-regular fa-eye-slash':'fa-regular fa-eye'" style="font-size:12px"></i>
                 </button>
               </div>
             </div>
 
-            <Transition enter-active-class="transition-all duration-300" enter-from-class="opacity-0 -translate-y-1" leave-active-class="transition-all duration-200" leave-to-class="opacity-0">
+            <Transition
+              enter-active-class="transition-all duration-300"
+              enter-from-class="opacity-0 -translate-y-1"
+              leave-active-class="transition-all duration-200"
+              leave-to-class="opacity-0">
               <div v-if="loginError" class="err-box">
-                <div class="err-icon"><i class="fa-solid fa-exclamation text-[10px]" style="color:#f87171"></i></div>
-                <p class="text-sm font-semibold" style="color:#dc2626">{{ loginError }}</p>
+                <div class="err-icon"><i class="fa-solid fa-triangle-exclamation" style="font-size:10px;color:#ef4444"></i></div>
+                <p style="font-size:13px;font-weight:600;color:#dc2626">{{ loginError }}</p>
               </div>
             </Transition>
 
-            <button type="submit" :disabled="loading||!email||!password" class="cta-btn">
-              <span class="cta-bg"></span>
-              <span class="cta-shine"></span>
-              <span class="relative z-10 flex items-center justify-center gap-3 text-sm font-black text-white">
+            <button type="submit" :disabled="loading||!email||!password" class="cta">
+              <span class="cta-fill"></span>
+              <span class="cta-glow"></span>
+              <span class="cta-shimmer"></span>
+              <span class="relative z-10 flex items-center justify-center gap-3" style="font-size:14px;font-weight:900;color:#fff">
                 <i v-if="loading" class="fa-solid fa-circle-notch fa-spin"></i>
-                <i v-else class="fa-solid fa-arrow-right-to-bracket cta-arrow"></i>
+                <i v-else class="fa-solid fa-arrow-right-to-bracket cta-icon"></i>
                 {{ loading ? 'Connexion…' : 'Se connecter' }}
               </span>
             </button>
           </form>
 
           <!-- divider -->
-          <div class="my-7 flex items-center gap-3" :class="mounted?'fade-up':'opacity-0'" style="--d:240ms">
-            <div class="flex-1 h-px" style="background:linear-gradient(90deg,transparent,rgba(30,74,73,.12))"></div>
-            <span class="text-[9px] font-black uppercase tracking-widest px-1" style="color:#a8bdb8">Espaces disponibles</span>
-            <div class="flex-1 h-px" style="background:linear-gradient(90deg,rgba(30,74,73,.12),transparent)"></div>
+          <div class="my-6 flex items-center gap-3" :class="mounted?'slide-in':'opacity-0'" style="--d:240ms">
+            <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(30,74,73,.1))"></div>
+            <span style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.16em;color:#a8bcb8">Espaces disponibles</span>
+            <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(30,74,73,.1),transparent)"></div>
           </div>
 
           <!-- roles -->
-          <div class="grid grid-cols-2 gap-2.5" :class="mounted?'fade-up':'opacity-0'" style="--d:300ms">
+          <div class="grid grid-cols-2 gap-2.5" :class="mounted?'slide-in':'opacity-0'" style="--d:300ms">
             <div v-for="(r,i) in roles" :key="r.label"
-              class="role-chip" :class="mounted?'fade-up':'opacity-0'" :style="`--d:${320+i*45}ms`">
-              <div class="role-orb" :style="`background:${r.color}18`">
-                <i :class="`fa-solid ${r.icon}`" :style="`color:${r.color};font-size:11px`"></i>
+              class="role-tile slide-in" :style="`--d:${320+i*45}ms`">
+              <div class="role-icon" :style="`background:${r.bg}`">
+                <i :class="`fa-solid ${r.icon}`" :style="`color:${r.color};font-size:12px`"></i>
               </div>
-              <div>
-                <p class="text-[11px] font-black" :style="`color:#1e2d2c`">{{ r.label }}</p>
-                <p class="text-[9px]" style="color:#a0b4ae">Espace dédié</p>
+              <div style="flex:1">
+                <p style="font-size:11px;font-weight:900;color:#162320">{{ r.label }}</p>
+                <p style="font-size:9px;font-weight:500;color:#9ab4ae;margin-top:1px">Espace dédié</p>
               </div>
-              <div class="role-pip ml-auto" :style="`background:${r.color}`"></div>
+              <div class="role-dot" :style="`background:${r.color}`"></div>
             </div>
           </div>
 
           <!-- footer -->
-          <p class="mt-8 text-center text-[9px] fade-up" style="color:#b8cac8;--d:480ms">
-            FSBM · Université Hassan II de Casablanca
+          <p class="mt-7 text-center slide-in" style="font-size:9px;color:#b0c8c4;--d:480ms">
+            GeoGrad · FSBM · Université Hassan II de Casablanca
           </p>
 
         </div>
@@ -251,10 +276,9 @@ const steps = [
 </template>
 
 <style scoped>
-/* ─ root ─ */
-.login-root {
-  min-height: 100vh;
-  width: 100%;
+/* ── root ── */
+.root {
+  min-height: 100vh; width: 100%;
   display: flex;
   font-family: system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -262,250 +286,200 @@ const steps = [
 }
 .abs-fill { position: absolute; inset: 0; pointer-events: none; }
 
-/* ─ LEFT ─ */
+/* ── LEFT ── */
 .left-panel {
-  width: 52%;
+  width: 50%;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(145deg, #0c1f1e 0%, #122d2b 40%, #0a1a19 100%);
   flex-direction: column;
+  background: linear-gradient(150deg, #0e2322 0%, #1a3d3b 35%, #122b2a 70%, #0a1918 100%);
 }
 
-/* hex grid bg */
-.hex-grid {
+/* mesh grid */
+.mesh {
   background-image:
-    linear-gradient(rgba(214,232,122,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(214,232,122,.04) 1px, transparent 1px);
-  background-size: 40px 40px;
+    linear-gradient(rgba(214,232,122,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(214,232,122,.035) 1px, transparent 1px);
+  background-size: 44px 44px;
 }
 
-/* radial vignette */
-.radial-vignette {
-  background: radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(0,0,0,.55) 100%);
-}
-
-/* scanning line animation */
-.scan-line {
-  background: linear-gradient(to bottom, transparent 0%, rgba(214,232,122,.03) 50%, transparent 100%);
-  background-size: 100% 200px;
-  animation: scan 8s linear infinite;
+/* scan animation */
+.scan {
+  background: linear-gradient(to bottom, transparent, rgba(214,232,122,.025) 50%, transparent);
+  background-size: 100% 180px;
+  animation: scan 9s linear infinite;
 }
 @keyframes scan {
-  from { background-position: 0 -200px; }
-  to   { background-position: 0 100vh; }
+  from { background-position: 0 -180px; }
+  to   { background-position: 0 110vh; }
 }
 
-/* rings */
-.deco-ring {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  border: 1px solid rgba(214,232,122,.1);
-}
-.deco-ring-1 { width: 500px; height: 500px; top: -180px; right: -130px; }
-.deco-ring-2 { width: 320px; height: 320px; top: -100px; right: -60px; border-color: rgba(214,232,122,.06); }
-.deco-ring-3 { width: 220px; height: 220px; bottom: 60px; left: -70px; border-color: rgba(214,232,122,.07); }
-
-/* floating dots */
-.fdot {
-  position: absolute;
-  border-radius: 50%;
-  background: #d6e87a;
-  opacity: .7;
-  animation: fdrift 7s ease-in-out infinite alternate;
-}
-@keyframes fdrift {
-  from { transform: translateY(0); opacity: .6; }
-  to   { transform: translateY(-10px); opacity: .15; }
+/* geometric rings */
+.geo-ring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid; pointer-events: none;
 }
 
-/* gem logo */
-.gem-logo {
-  display: flex; align-items: center; justify-content: center;
+/* floating particles */
+.particle {
+  position: absolute; border-radius: 50%;
+  background: #d6e87a; opacity: .65;
+  animation: float 7s ease-in-out infinite alternate;
+}
+@keyframes float {
+  from { transform: translateY(0) scale(1); opacity: .6; }
+  to   { transform: translateY(-12px) scale(.85); opacity: .15; }
+}
+
+/* brand gem */
+.brand-gem {
   width: 44px; height: 44px; border-radius: 14px;
-  background: linear-gradient(135deg, #d6e87a 0%, #b0c840 100%);
-  box-shadow: 0 0 0 0 rgba(214,232,122,.35), 0 4px 16px rgba(214,232,122,.18);
-  animation: gempulse 3.5s ease-in-out infinite;
-  flex-shrink: 0;
-}
-.gem-logo-sm {
   display: flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; border-radius: 12px;
-  background: linear-gradient(135deg, #d6e87a 0%, #b0c840 100%);
+  background: linear-gradient(135deg, #d6e87a 0%, #b2c840 100%);
+  box-shadow: 0 0 0 0 rgba(214,232,122,.3), 0 4px 18px rgba(214,232,122,.18);
+  animation: glow 3.5s ease-in-out infinite; flex-shrink: 0;
 }
-@keyframes gempulse {
-  0%,100% { box-shadow: 0 0 0 0 rgba(214,232,122,.35), 0 4px 16px rgba(214,232,122,.15); }
-  50%      { box-shadow: 0 0 0 10px rgba(214,232,122,0), 0 4px 24px rgba(214,232,122,.25); }
+.brand-gem-sm {
+  width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #d6e87a 0%, #b2c840 100%);
+}
+@keyframes glow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(214,232,122,.3), 0 4px 18px rgba(214,232,122,.15); }
+  50%      { box-shadow: 0 0 0 10px rgba(214,232,122,0), 0 4px 28px rgba(214,232,122,.28); }
 }
 
-/* pill badge */
-.pill-badge {
-  display: flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 100px;
+/* live chip */
+.live-chip {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 100px;
   background: rgba(214,232,122,.06);
   border: 1px solid rgba(214,232,122,.14);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
-.pulse-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: #d6e87a;
-  animation: pulse 2s ease-in-out infinite;
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #d6e87a;
+  animation: pulse 2.2s ease-in-out infinite;
 }
-@keyframes pulse {
-  0%,100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: .4; transform: scale(.8); }
-}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.75)} }
 
-/* eyebrow */
-.eyebrow-tag {
-  font-size: 10px; font-weight: 900;
-  text-transform: uppercase; letter-spacing: .25em;
-  color: rgba(214,232,122,.45);
+/* headline */
+.headline {
+  font-size: clamp(2.4rem, 3.6vw, 3.3rem);
+  font-weight: 900; color: #fff;
+  line-height: 1.04; letter-spacing: -.04em;
+  font-style: normal;
 }
-
-/* hero title */
-.hero-title {
-  font-size: clamp(2.5rem, 3.8vw, 3.5rem);
-  font-weight: 900;
-  color: white;
-  line-height: 1.03;
-  letter-spacing: -.04em;
-}
-.lime-text {
-  background: linear-gradient(135deg, #d6e87a 0%, #c0d84a 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+.lime-em {
+  font-style: normal;
+  background: linear-gradient(135deg, #d6e87a 20%, #c0d840 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* steps */
-.step-row {
+/* timeline */
+.step {
   display: flex; align-items: center; gap: 14px;
-  padding: 11px 0; position: relative;
-  cursor: default;
+  padding: 10px 0; position: relative; cursor: default;
 }
-.step-connector {
-  position: absolute;
-  left: 17px;
-  top: calc(50% + 16px);
-  width: 1px;
-  height: calc(100% - 4px);
-  background: linear-gradient(to bottom, rgba(214,232,122,.2), rgba(214,232,122,.03));
+.step-line {
+  position: absolute; left: 16px; top: calc(50% + 15px);
+  width: 1px; height: calc(100% - 3px);
+  background: linear-gradient(to bottom, rgba(214,232,122,.18), rgba(214,232,122,.03));
 }
 .step-orb {
+  width: 33px; height: 33px; border-radius: 50%; flex-shrink: 0; z-index: 1;
   display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px; border-radius: 50%;
-  background: rgba(214,232,122,.08);
-  border: 1px solid rgba(214,232,122,.16);
-  flex-shrink: 0; z-index: 1;
+  background: rgba(214,232,122,.08); border: 1px solid rgba(214,232,122,.15);
   transition: background .2s, transform .2s;
 }
-.step-row:hover .step-orb {
-  background: rgba(214,232,122,.18);
-  transform: scale(1.1);
-}
-.step-num {
-  font-size: 10px; font-weight: 900;
-  color: rgba(214,232,122,.3);
-  min-width: 22px; text-align: right;
-}
+.step:hover .step-orb { background: rgba(214,232,122,.18); transform: scale(1.1); }
 
-/* univ icon */
-.univ-icon {
+/* univ badge */
+.univ-badge {
+  width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px; border-radius: 12px;
-  background: rgba(214,232,122,.08);
-  border: 1px solid rgba(214,232,122,.12);
-  flex-shrink: 0;
+  background: rgba(214,232,122,.08); border: 1px solid rgba(214,232,122,.12);
 }
 
-/* ─ RIGHT ─ */
+/* ── RIGHT ── */
 .right-panel {
-  flex: 1;
-  min-height: 100vh;
-  position: relative;
-  overflow: hidden;
-  background: #f2f5ed;
+  flex: 1; min-height: 100vh;
+  position: relative; overflow: hidden;
+  background: #f0f5ed;
 }
 
-.cream-dots {
-  background-image: radial-gradient(circle, rgba(30,74,73,.08) 1px, transparent 1px);
+/* noise dots */
+.noise-dots {
+  background-image: radial-gradient(circle, rgba(30,74,73,.07) 1px, transparent 1px);
   background-size: 26px 26px;
 }
 
-.ornament {
-  position: absolute;
-  border-radius: 50%;
-  border-style: solid;
-  border-color: #d6e87a;
-  pointer-events: none;
+/* corner ring */
+.corner-ring {
+  position: absolute; border-radius: 50%;
+  border-style: solid; border-color: #d6e87a; pointer-events: none;
 }
 
-/* form card */
-.form-card {
-  width: 100%;
-  max-width: 400px;
-}
-
-/* secure badge */
-.secure-badge {
+/* access tag */
+.access-tag {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 14px; border-radius: 100px;
-  background: rgba(30,74,73,.07);
-  border: 1px solid rgba(30,74,73,.12);
+  background: rgba(30,74,73,.07); border: 1px solid rgba(30,74,73,.12);
+  margin-bottom: 16px;
 }
-.secure-icon {
-  display: flex; align-items: center; justify-content: center;
+.access-icon {
   width: 18px; height: 18px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   background: #1e4a49;
 }
 
-/* wave */
-.wave { display: inline-block; animation: wave 2.5s ease-in-out infinite; transform-origin: 70% 70%; }
-@keyframes wave {
-  0%,100% { transform: rotate(0deg); }
-  20%      { transform: rotate(-15deg); }
-  40%      { transform: rotate(10deg); }
-  60%      { transform: rotate(-8deg); }
-  80%      { transform: rotate(6deg); }
+/* form title */
+.form-title {
+  font-size: 2.2rem; font-weight: 900; color: #0c1f1e;
+  letter-spacing: -.03em; line-height: 1;
 }
 
-/* input card */
-.input-card {
+/* field card */
+.field-card {
   background: white;
   border: 1.5px solid #e4ede4;
-  border-radius: 16px;
-  padding: 14px 18px 10px;
-  transition: border-color .2s, box-shadow .2s;
+  border-radius: 15px;
+  padding: 13px 16px 9px;
+  transition: border-color .22s, box-shadow .22s;
 }
-.input-card:focus-within {
+.field-card:focus-within {
   border-color: #1e4a49;
   box-shadow: 0 0 0 4px rgba(30,74,73,.07);
 }
-.input-label {
+.field-card.field-filled { border-color: rgba(30,74,73,.3); }
+
+.field-label {
   display: flex; align-items: center; gap: 5px;
-  font-size: 9px; font-weight: 900;
-  text-transform: uppercase; letter-spacing: .12em;
+  font-size: 8.5px; font-weight: 900;
+  text-transform: uppercase; letter-spacing: .13em;
   color: #8aaa9a; margin-bottom: 5px;
   transition: color .2s;
 }
-.input-card:focus-within .input-label { color: #1e4a49; }
-.input-wrap { position: relative; }
-.i-field {
+.field-card:focus-within .field-label { color: #1e4a49; }
+
+.field-inner { position: relative; }
+.field-input {
   width: 100%; border: none; background: transparent;
-  font-size: .9rem; font-weight: 600; color: #0c1f1e;
+  font-size: 14.5px; font-weight: 600; color: #0c1f1e;
   outline: none; padding: 2px 0;
 }
-.i-field::placeholder { color: #c4d4cc; }
-.i-bar {
+.field-input::placeholder { color: #c4d4cc; }
+
+.field-bar {
   position: absolute; bottom: -2px; left: 0;
   height: 1.5px; width: 0%;
   background: linear-gradient(90deg, #1e4a49, #d6e87a);
-  border-radius: 2px;
-  transition: width .3s ease;
+  border-radius: 2px; transition: width .32s ease;
 }
-.input-wrap:focus-within .i-bar { width: 100%; }
+.field-inner:focus-within .field-bar { width: 100%; }
+
 .eye-btn {
   position: absolute; right: 0; top: 50%; transform: translateY(-50%);
   color: #b0c4bc; background: none; border: none; cursor: pointer;
@@ -520,65 +494,61 @@ const steps = [
   background: #fff5f5; border: 1.5px solid #fecaca;
 }
 .err-icon {
+  width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  width: 24px; height: 24px; border-radius: 50%;
-  background: #fee2e2; flex-shrink: 0;
+  background: #fee2e2;
 }
 
-/* CTA button */
-.cta-btn {
+/* CTA */
+.cta {
   position: relative; overflow: hidden;
-  border-radius: 14px; padding: 17px;
+  border-radius: 14px; padding: 16.5px;
   width: 100%; border: none; cursor: pointer;
-  transition: all .3s ease;
-  box-shadow: 0 6px 24px rgba(30,74,73,.28), inset 0 1px 0 rgba(255,255,255,.1);
+  transition: transform .3s ease, box-shadow .3s ease;
+  box-shadow: 0 6px 28px rgba(30,74,73,.32), inset 0 1px 0 rgba(255,255,255,.08);
 }
-.cta-btn:not(:disabled):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 38px rgba(30,74,73,.36), inset 0 1px 0 rgba(255,255,255,.15);
-}
-.cta-btn:not(:disabled):hover .cta-arrow { transform: translateX(4px); }
-.cta-btn:not(:disabled):active { transform: translateY(0); }
-.cta-btn:disabled { opacity: .4; cursor: not-allowed; }
-.cta-bg {
+.cta:not(:disabled):hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(30,74,73,.4), inset 0 1px 0 rgba(255,255,255,.12); }
+.cta:not(:disabled):hover .cta-icon { transform: translateX(4px); }
+.cta:not(:disabled):active { transform: translateY(0); }
+.cta:disabled { opacity: .38; cursor: not-allowed; }
+.cta-fill {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, #1e4a49 0%, #2e7a76 50%, #1e4a49 100%);
-  background-size: 200% 100%; background-position: 0% 0%;
-  transition: background-position .5s ease;
+  background: linear-gradient(135deg, #1a3d3b 0%, #2d7a76 45%, #1e4a49 100%);
+  background-size: 200% 100%; background-position: 0%;
+  transition: background-position .55s ease;
 }
-.cta-btn:not(:disabled):hover .cta-bg { background-position: 100% 0%; }
-.cta-shine {
+.cta:not(:disabled):hover .cta-fill { background-position: 100%; }
+.cta-glow {
   position: absolute; inset: 0;
-  background: linear-gradient(120deg, rgba(255,255,255,.15) 0%, transparent 50%);
+  background: linear-gradient(120deg, rgba(255,255,255,.13) 0%, transparent 50%);
 }
-.cta-arrow { transition: transform .25s ease; }
+.cta-shimmer {
+  position: absolute; top: 0; left: -100%;
+  width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent);
+  animation: shimmer 3s ease-in-out infinite;
+}
+@keyframes shimmer { from{left:-100%} to{left:200%} }
+.cta-icon { transition: transform .25s ease; }
 
 /* roles */
-.role-chip {
+.role-tile {
   display: flex; align-items: center; gap: 10px;
-  background: white;
-  border: 1.5px solid #eaeee8;
-  border-radius: 14px; padding: 12px 14px;
+  background: white; border: 1.5px solid #eaeee8;
+  border-radius: 14px; padding: 11px 13px;
   cursor: default;
   transition: transform .2s, box-shadow .2s, border-color .2s;
 }
-.role-chip:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,.07);
-  border-color: #d0dcd0;
-}
-.role-orb {
+.role-tile:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.07); border-color: #d4dcd0; }
+.role-icon {
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
 }
-.role-pip {
-  width: 6px; height: 6px; border-radius: 50%;
-  opacity: .5; flex-shrink: 0;
-}
+.role-dot { width: 6px; height: 6px; border-radius: 50%; opacity: .45; flex-shrink: 0; }
 
-/* entrance */
-.fade-up { animation: fadeUp .65s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--d, 0ms); }
-@keyframes fadeUp {
+/* entrance animation */
+.slide-in { animation: slideIn .65s cubic-bezier(.16,1,.3,1) both; animation-delay: var(--d,0ms); }
+@keyframes slideIn {
   from { opacity: 0; transform: translateY(22px); }
   to   { opacity: 1; transform: translateY(0); }
 }
@@ -587,7 +557,7 @@ const steps = [
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  -webkit-box-shadow: 0 0 0 1000px white inset;
   transition: background-color 5000s ease-in-out 0s;
 }
 </style>

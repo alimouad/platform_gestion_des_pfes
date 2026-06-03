@@ -46,7 +46,7 @@ async function logout() {
       <div class="flex w-full flex-col items-center gap-1 px-3">
         <div class="flex items-center gap-3 overflow-hidden" :class="expanded ? 'w-full' : 'justify-center'">
           <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#d6e87a] text-base font-black text-[#4a5e20]">O</div>
-          <span v-show="expanded" class="whitespace-nowrap text-sm font-extrabold text-slate-800 transition-opacity duration-200">FSBM Univ.</span>
+          <span v-show="expanded" class="whitespace-nowrap text-sm font-extrabold text-slate-800 transition-opacity duration-200">GeoGrad</span>
         </div>
 
         <!-- Nav items -->

@@ -47,7 +47,7 @@ async function logout() {
             <i class="fa-solid fa-seedling"></i>
           </div>
           <div v-show="expanded" class="leading-tight">
-            <p class="whitespace-nowrap text-sm font-extrabold text-slate-800">FSBM Univ.</p>
+            <p class="whitespace-nowrap text-sm font-extrabold text-slate-800">GeoGrad</p>
             <p class="whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-[#6a8a40]">Étudiant</p>
           </div>
         </div>

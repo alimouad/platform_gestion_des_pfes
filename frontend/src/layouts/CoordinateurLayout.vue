@@ -44,7 +44,7 @@ async function logout() {
         <div class="flex items-center gap-3 overflow-hidden" :class="expanded ? 'w-full' : 'justify-center'">
           <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#1e4a49] text-base font-black text-[#d6e87a]">C</div>
           <div v-show="expanded" class="leading-tight">
-            <p class="whitespace-nowrap text-sm font-extrabold text-slate-800">FSBM Univ.</p>
+            <p class="whitespace-nowrap text-sm font-extrabold text-slate-800">GeoGrad</p>
             <p class="whitespace-nowrap text-[10px] font-bold uppercase tracking-widest text-[#1e4a49]">Coordinateur</p>
           </div>
         </div>
