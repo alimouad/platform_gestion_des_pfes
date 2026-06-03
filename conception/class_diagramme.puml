@@ -1,64 +1,101 @@
-@startuml PFE_Class_Diagram
+@startuml GeoGrad_Class_Diagram_Clean
 
 '=================================================
-' THEME
+' EDITORIAL / PROMAX THEME BY HIGH-CONTRAST DESIGN
 '=================================================
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
 skinparam shadowing false
-skinparam roundcorner 15
-skinparam BackgroundColor white
-skinparam ArrowColor #1e4a49
+skinparam roundcorner 4
+skinparam minClassWidth 180
+skinparam padding 8
 
+' Global Colors
+skinparam BackgroundColor     #F1F5F9
+skinparam ArrowColor          #475569
+skinparam ArrowThickness      1.2
+
+' Package Styling
+skinparam package {
+    BackgroundColor           #E2E8F0
+    BorderColor               #CBD5E1
+    FontColor                 #0F172A
+    FontStyle                 bold
+    FontSize                  13
+}
+
+' Class Component Styling
 skinparam class {
-    BackgroundColor #FAFAFA
-    BorderColor #1e4a49
-    HeaderBackgroundColor #1e4a49
-    FontColor #FFFFFF
+    BackgroundColor           #FFFFFF
+    BorderColor               #94A3B8
+    FontColor                 #0F172A
+    FontSize                  12
+    FontName                  "Inter", "Segoe UI", sans-serif
+    
+    ' Headers
+    ' HeaderBackgroundColor     #1E293B
+    HeaderFontColor           #F8FAFC
+    HeaderFontSize            12
+    
+    ' Attributes & Methods
+    AttributeFontColor        #334155
+    AttributeFontSize         11
+    AttributeFontName         "JetBrains Mono", "Courier New", monospace
+    
+    MethodFontColor           #0F172A
+    MethodFontSize            11
+    
+    ' Stereotypes
+    StereotypeFontColor       #94A3B8
+    StereotypeFontSize        10
 }
 
 '=================================================
-' USERS
+' UTILISATEURS
 '=================================================
-
 package "Gestion des Utilisateurs" {
 
-abstract class Utilisateur  {
-    +id : bigint
-    +nom : string
-    +prenom : string
-    +courriel : string
-    -mot_de_passe : string
-    +role : enum
-    +created_at : timestamp
-    +updated_at : timestamp
-
-    +login()
-    +logout()
+abstract class Utilisateur {
+    + id : bigint
+    + nom : string
+    + prenom : string
+    + courriel : string
+    # mot_de_passe : string
+    + role : string
+    + created_at : timestamp
+    + updated_at : timestamp
+    --
+    + login() : token
+    + logout() : void
+    + changePassword() : void
 }
 
-class Etudiant{
-    +code_etudiant : string
-    +niveau : string
-    +groupe : string
-
-    +postuler()
-    +deposerLivrable()
+class Etudiant {
+    + code_etudiant : string
+    + niveau : string
+    + groupe : string
+    --
+    + postuler() : void
+    + deposerLivrable() : void
+    + importerSIG() : void
 }
 
 class Professeur {
-    +specialite : string
-    +grade : string
-    +bureau : string
-
-    +superviserProjet()
+    + specialite : string
+    + grade : string
+    + bureau : string
+    --
+    + proposerSujet() : void
+    + validerDepot() : void
+    + rejeterDepot() : void
 }
 
-class Coordinateur{
-    +bureau : string
-
-    +validerProjet()
-    +genererStats()
+class Coordinateur {
+    + bureau : string
+    --
+    + affecterEtudiant() : void
+    + planifierSoutenance() : void
+    + genererStats() : void
 }
 
 Utilisateur <|-- Etudiant
@@ -68,130 +105,136 @@ Utilisateur <|-- Coordinateur
 }
 
 '=================================================
-' ACADEMIC STRUCTURE
+' STRUCTURE ACADEMIQUE
 '=================================================
-
 package "Structure Académique" {
 
 class Departement {
-    +id : bigint
-    +nom : string
-    +description : text
+    + id : bigint
+    + nom : string
+    + description : text
 }
 
 class Filiere {
-    +id : bigint
-    +nom : string
-    +description : text
+    + id : bigint
+    + nom : string
+    + description : text
 }
 
 class AnneeUniversitaire {
-    +id : bigint
-    +annee : string
-    +date_debut : date
-    +date_fin : date
-    +statut : enum
+    + id : bigint
+    + annee : string
+    + date_debut : date
+    + date_fin : date
+    + statut : string
 }
 
 }
 
 '=================================================
-' PROJECT MANAGEMENT
+' GESTION PFE
 '=================================================
-
 package "Gestion PFE" {
 
-class Projet{
-    +id : bigint
-    +titre : string
-    +description : text
-    +domaine : string
-    +statut : enum
-    +ville : string
-    +latitude : decimal
-    +longitude : decimal
-    +zone_etude : json
-
-    +creer()
-    +modifier()
-    +archiver()
+class Projet {
+    + id : bigint
+    + titre : string
+    + description : text
+    + domaine : string
+    + statut : string
+    + ville : string
+    + latitude : decimal
+    + longitude : decimal
+    + zone_etude : json
 }
 
 class Postulation {
-    +id : bigint
-    +statut : enum
-    +created_at : timestamp
+    + id : bigint
+    + statut : string
+    + date_candidature : timestamp
 }
 
 class Depot {
-    +id : bigint
-    +chemin_fichier : string
-    +type_depot : string
-    +statut_validation : enum
-    +commentaire : text
+    + id : bigint
+    + chemin_fichier : string
+    + type_depot : string
+    + statut_validation : string
+    + commentaire : text
 }
 
 class Soutenance {
-    +id : bigint
-    +date : date
-    +heure : time
-    +salle : string
-    +jury : text
-    +note_finale : decimal
+    + id : bigint
+    + date : date
+    + heure : time
+    + salle : string
+    + statut : string
+    + note_finale : decimal
 }
 
 }
 
 '=================================================
-' GIS MODULE
+' SIG & CARTOGRAPHIE
 '=================================================
-
 package "SIG & Cartographie" {
 
 class DonneeSpatiale {
-    +id : bigint
-    +nom : string
-    +geojson : json
-    +surface : float
+    + id : bigint
+    + nom_fichier : string
+    + geojson : json
+    + type_geometrie : string
+    + surface : float
 }
 
 class CoucheCarte {
-    +id : bigint
-    +nom : string
-    +type : enum
+    + id : bigint
+    + nom : string
+    + type : string
 }
 
 }
 
 '=================================================
-' COMMUNICATION
+' COMMUNICATION & ANALYTICS
 '=================================================
-
 package "Communication & Analytics" {
 
 class Message {
-    +id : bigint
-    +contenu : text
-    +read_at : timestamp
+    + id : bigint
+    + body : text
+    + read_at : timestamp
+    + created_at : timestamp
+}
+
+class Notification {
+    + id : bigint
+    + type : string
+    + titre : string
+    + corps : text
+    + lien : string
+    + lue_le : timestamp
 }
 
 class Statistique {
-    +id : bigint
-    +total_projets : int
-    +projets_valides : int
-    +projets_par_domaine : json
+    + id : bigint
+    + total_projets : int
+    + projets_valides : int
+    + projets_en_cours : int
+    + projets_soutenus : int
+    + projets_par_domaine : json
 }
 
 }
 
 '=================================================
-' RELATIONS
+' RELATIONS (CLEAN ALIGNMENT)
 '=================================================
 
-Departement "1" -- "*" Filiere
-Departement "1" -- "*" Utilisateur
+Departement "1" *-- "*" Filiere
+Departement "1" o-- "*" Utilisateur
 
-Filiere "1" -- "*" Etudiant
+Filiere "1" o-- "*" Etudiant
+Filiere "1" o-- "*" Projet
 
 Professeur "1" -- "*" Projet : supervise
 Coordinateur "1" -- "*" Projet : valide
@@ -208,8 +251,8 @@ Projet "1" -- "0..1" Soutenance
 Projet "1" -- "*" DonneeSpatiale
 DonneeSpatiale "1" -- "*" CoucheCarte
 
-Utilisateur "1" --> "*" Message : expéditeur
-Utilisateur "1" --> "*" Message : destinataire
+Utilisateur "1" -- "*" Message : envoie/reçoit
+Utilisateur "1" -- "*" Notification
 
 Coordinateur "1" -- "*" Statistique
 AnneeUniversitaire "1" -- "*" Statistique

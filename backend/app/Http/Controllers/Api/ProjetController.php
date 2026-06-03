@@ -16,7 +16,7 @@ class ProjetController extends CrudController
 
     protected function relations(): array
     {
-        return ['professeur.utilisateur', 'coordinateur.utilisateur', 'anneeUniversitaire', 'filiere', 'postulations.etudiant.filiere', 'depots', 'soutenance', 'donneeSpatiale'];
+        return ['professeur.utilisateur.departement', 'coordinateur.utilisateur', 'anneeUniversitaire', 'filiere.departement', 'postulations.etudiant.filiere', 'depots', 'soutenance', 'donneeSpatiale'];
     }
 
     public function index(): JsonResponse

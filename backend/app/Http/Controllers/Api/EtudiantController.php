@@ -17,7 +17,7 @@ class EtudiantController extends CrudController
 
     protected function relations(): array
     {
-        return ['utilisateur', 'filiere', 'postulations.projet', 'depots'];
+        return ['utilisateur.departement', 'filiere.departement', 'postulations.projet', 'depots'];
     }
 
     public function index(): JsonResponse
