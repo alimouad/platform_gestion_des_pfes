@@ -63,6 +63,39 @@ async function rejeter(id) {
 const statutLabel = { en_attente: 'En attente', accepte: 'Acceptée', rejete: 'Rejetée' }
 const statutColor = { en_attente: 'bg-amber-100 text-amber-700', accepte: 'bg-green-100 text-green-700', rejete: 'bg-red-100 text-red-600' }
 
+// ── Affectation directe ───────────────────────────────────────
+const showAffecter   = ref(false)
+const etudiants      = ref([])
+const projets        = ref([])
+const affectForm     = ref({ etudiant_id: '', projet_id: '' })
+const affectError    = ref('')
+const affectLoading  = ref(false)
+
+async function openAffecter() {
+  showAffecter.value = true
+  affectError.value  = ''
+  affectForm.value   = { etudiant_id: '', projet_id: '' }
+  try {
+    const [e, p] = await Promise.all([api.get('/etudiants'), api.get('/projets')])
+    etudiants.value = e.data.data
+    projets.value   = p.data.data.filter(p => ['soumis','brouillon','en_cours'].includes(p.statut))
+  } catch {}
+}
+
+async function submitAffecter() {
+  if (!affectForm.value.etudiant_id || !affectForm.value.projet_id) return
+  affectLoading.value = true
+  affectError.value   = ''
+  try {
+    await api.post('/postulations/affecter', affectForm.value)
+    showAffecter.value = false
+    await fetchAll()
+  } catch (e) {
+    affectError.value = e.response?.data?.message || 'Erreur'
+  }
+  affectLoading.value = false
+}
+
 onMounted(fetchAll)
 </script>
 
@@ -73,6 +106,10 @@ onMounted(fetchAll)
         <h1 class="text-2xl font-extrabold text-slate-900">Postulations</h1>
         <p class="text-sm text-slate-400">{{ items.length }} candidatures au total</p>
       </div>
+      <button @click="openAffecter"
+        class="flex items-center gap-2 rounded-2xl bg-[#1e4a49] px-5 py-2.5 text-sm font-black text-[#d6e87a] hover:bg-[#163836] transition">
+        <i class="fa-solid fa-user-plus"></i> Affecter un étudiant
+      </button>
     </div>
 
     <!-- Filter pills -->
@@ -143,5 +180,69 @@ onMounted(fetchAll)
         </div>
       </section>
     </div>
+
+    <!-- Modal : Affectation directe -->
+    <Teleport to="body">
+      <div v-if="showAffecter" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="w-full max-w-md rounded-3xl bg-white shadow-2xl overflow-hidden">
+
+          <div class="bg-[#1e4a49] px-6 py-5 flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-[#d6e87a]">Coordinateur</p>
+              <h2 class="text-base font-black text-white">Affecter un étudiant à un projet</h2>
+            </div>
+            <button @click="showAffecter = false" class="flex h-8 w-8 items-center justify-center rounded-xl text-white/60 hover:bg-white/10 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <form @submit.prevent="submitAffecter" class="p-6 space-y-4">
+            <div v-if="affectError" class="rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm font-bold text-red-600">
+              <i class="fa-solid fa-circle-exclamation mr-2"></i>{{ affectError }}
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-400">Étudiant</label>
+              <select v-model="affectForm.etudiant_id" required
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-[#1e4a49] transition">
+                <option value="">— Sélectionner un étudiant —</option>
+                <option v-for="e in etudiants" :key="e.id" :value="e.id">
+                  {{ e.utilisateur?.prenom }} {{ e.utilisateur?.nom }} — {{ e.code_etudiant }} ({{ e.filiere?.nom || 'Sans filière' }})
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="mb-1.5 block text-[11px] font-black uppercase tracking-widest text-slate-400">Projet PFE</label>
+              <select v-model="affectForm.projet_id" required
+                class="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-[#1e4a49] transition">
+                <option value="">— Sélectionner un projet —</option>
+                <option v-for="p in projets" :key="p.id" :value="p.id">
+                  {{ p.titre }} — {{ p.professeur?.utilisateur?.prenom }} {{ p.professeur?.utilisateur?.nom }}
+                </option>
+              </select>
+            </div>
+
+            <div class="rounded-2xl bg-amber-50 border border-amber-100 px-4 py-3 text-xs text-amber-700">
+              <i class="fa-solid fa-triangle-exclamation mr-1.5"></i>
+              Cette affectation est directe et immédiate. L'étudiant sera notifié automatiquement.
+            </div>
+
+            <div class="flex gap-3 pt-1">
+              <button type="button" @click="showAffecter = false"
+                class="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-bold text-slate-600 hover:bg-slate-50 transition">
+                Annuler
+              </button>
+              <button type="submit" :disabled="affectLoading || !affectForm.etudiant_id || !affectForm.projet_id"
+                class="flex-1 rounded-2xl bg-[#1e4a49] py-3 text-sm font-black text-white hover:bg-[#163836] transition disabled:opacity-50 flex items-center justify-center gap-2">
+                <i v-if="affectLoading" class="fa-solid fa-circle-notch fa-spin"></i>
+                <i v-else class="fa-solid fa-user-check"></i>
+                {{ affectLoading ? 'Affectation…' : 'Confirmer l\'affectation' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>

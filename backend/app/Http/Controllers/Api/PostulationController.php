@@ -125,4 +125,46 @@ class PostulationController extends CrudController
 
         return response()->json(['data' => $postulation->fresh($this->relations())]);
     }
+
+    // Coordinateur affecte directement un étudiant à un projet
+    public function affecter(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'etudiant_id' => ['required', 'integer', 'exists:etudiants,id'],
+            'projet_id'   => ['required', 'integer', 'exists:projets,id'],
+        ]);
+
+        // Étudiant déjà assigné à un projet
+        if (Postulation::where('etudiant_id', $data['etudiant_id'])->where('statut', 'accepte')->exists()) {
+            return response()->json(['message' => 'Cet étudiant est déjà assigné à un projet.'], 422);
+        }
+
+        // Projet déjà pris
+        if (Postulation::where('projet_id', $data['projet_id'])->where('statut', 'accepte')->exists()) {
+            return response()->json(['message' => 'Ce projet est déjà assigné à un autre étudiant.'], 422);
+        }
+
+        // Rejeter toute postulation en attente de cet étudiant sur ce projet
+        Postulation::where('etudiant_id', $data['etudiant_id'])
+            ->where('projet_id', $data['projet_id'])
+            ->where('statut', 'en_attente')
+            ->update(['statut' => 'rejete']);
+
+        $postulation = Postulation::create([
+            'etudiant_id' => $data['etudiant_id'],
+            'projet_id'   => $data['projet_id'],
+            'statut'      => 'accepte',
+        ]);
+
+        // Rejeter les autres postulations du projet
+        Postulation::where('projet_id', $data['projet_id'])
+            ->where('id', '!=', $postulation->id)
+            ->where('statut', 'en_attente')
+            ->update(['statut' => 'rejete']);
+
+        $postulation->load($this->relations());
+        NotificationService::postulationAcceptee($postulation);
+
+        return response()->json(['data' => $postulation->fresh($this->relations())], 201);
+    }
 }

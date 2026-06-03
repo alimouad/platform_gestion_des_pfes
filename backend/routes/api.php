@@ -98,6 +98,8 @@ Route::middleware('auth:sanctum')->group(function () {
          ->middleware('role:superadmin,coordinateur');
     Route::post('postulations/{postulation}/rejeter',  [PostulationController::class, 'rejeter'])
          ->middleware('role:superadmin,coordinateur');
+    Route::post('postulations/affecter', [PostulationController::class, 'affecter'])
+         ->middleware('role:superadmin,coordinateur');
 
     // ── Dépôts ────────────────────────────────────────────────────────────
     Route::apiResource('depots', DepotController::class);
